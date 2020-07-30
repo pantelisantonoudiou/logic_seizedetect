@@ -5,7 +5,7 @@ Created on Wed Jul 29 14:43:22 2020
 @author: panton01
 """
 
-import os
+import os, sys
 from tqdm import tqdm
 from preprocess import preprocess_data
 from build_feature_data import get_data, save_data
@@ -44,15 +44,24 @@ def batch_clean_filt(main_path, num_channels = [0,1]):
         
 if __name__ == '__main__':
     
-    # get path from user
-    main_path = input('Enter data path:')
+    # # get path from user
+    # main_path = input('Enter data path:')
     
-    # if path exists
-    if os.path.isdir(main_path) == 1:
-        batch_clean_filt(main_path, num_channels = [0,1])
-    else:
-        print('Path does not exist, please enter a valid path')
+    if len(sys.argv)>1:
+        main_path = sys.argv[1]
         
+        # get sub directories
+        folders = [f.path for f in os.scandir(main_path) if f.is_dir()]
+        
+        for f_path in folders:
+            # if path exists
+            if os.path.isdir(f_path) == 1:
+                batch_clean_filt(f_path, num_channels = [0,1]) # filter and save files
+            else:
+                print('Path does not exist, please enter a valid path')
+    else:
+        print('Path was not entered')
+            
         
         
         
