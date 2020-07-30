@@ -165,10 +165,11 @@ def get_features_allch(data,param_list,cross_ch_param_list):
         str2append = '_' + str(ii) # get channel string
         labels += [s + str2append for s in feature_labels] # add to feature labels
     
-    # calculcate cross-channel measures    
-    temp_data, feature_labels = get_features_crossch(data, np.array(cross_ch_param_list))
-    x_data = np.concatenate((x_data, temp_data), axis=1) # append data
-    labels += [s for s in feature_labels] # add to feature labels   
+    # calculcate cross-channel measures
+    if len(cross_ch_param_list)>0:
+        temp_data, feature_labels = get_features_crossch(data, np.array(cross_ch_param_list))
+        x_data = np.concatenate((x_data, temp_data), axis=1) # append data
+        labels += [s for s in feature_labels] # add to feature labels   
      
     return x_data, np.array(labels)
 

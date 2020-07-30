@@ -9,20 +9,22 @@ import os, features, time
 import numpy as np
 import pandas as pd
 from numba import jit
-from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
-from build_feature_data import get_data, get_features_allch
+from sklearn.preprocessing import StandardScaler
 from preprocess import preprocess_data
+from build_feature_data import get_data, get_features_allch
 from array_helper import find_szr_idx, match_szrs, merge_close
 import matplotlib.pyplot as plt
 
 main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+# folder_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
 num_channels = [0,1]
+
 
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
-cross_ch_param_list = (features.cross_corr,)
+cross_ch_param_list = () # features.cross_corr
 
 
 def multi_folder(main_path):
@@ -38,7 +40,7 @@ def multi_folder(main_path):
         df, szrs =  folder_loop(os.path.join(main_path,folder), thresh_multiplier = thresh)
         
         # save dataframe as csv file
-        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh) + '.csv')
+        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh) + '_test.csv')
         df.to_csv(df_path, index=True)
 
 
@@ -50,7 +52,8 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
     # create feature labels
-    feature_labels = [x.__name__ for x in param_list]; 
+    feature_labels = [x.__name__ + '_1' for x in param_list]; 
+    # feature_labels += [x.__name__ + '_2' for x in param_list]; 
     feature_labels += [x.__name__  for x in cross_ch_param_list]
     feature_labels = np.array(feature_labels)
     
@@ -62,7 +65,7 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     # create seizure array
     szrs = np.zeros((len(filelist),3,feature_labels.shape[0]))
         
-    for i in tqdm(range(0, len(filelist))): # loop through experiments 
+    for i in tqdm(range(0, len(filelist))): # loop through experiments  
 
         # get data and true labels
         data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
@@ -73,19 +76,20 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         # print('-> data pre-processed.')
         
         # Get features and labels
-        x_data, feature_labels = get_features_allch(data,param_list,cross_ch_param_list)
+        x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
+        
+        #  UNCOMMENT LINES BELOW TO : get refined data (multiply channels)
+        # new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
+        # x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
         
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
-        
-        # get refined data (multiply channels)
-        new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
-        x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
 
-        for ii in range(x_data.shape[1]): # iterate through parameteres
-        
+        for ii in range(feature_labels): # iterate through parameteres  x_data.shape[1]
+
             # get boolean index
-            y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
             
             ## UNCOMMENT LINE BELOW: for running threshold
             ## y_pred = running_std_detection(x_data[:,ii] , 5, int(60/5)*120)
@@ -93,6 +97,9 @@ def folder_loop(folder_path, thresh_multiplier = 5):
             # get number of seizures
             bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
+            
+            # get true number of seizures
+            szrs[i,0,ii] = bounds_true.shape[0] 
             
             # plot figures
             if bounds_pred.shape[0] > 0:
@@ -103,15 +110,14 @@ def folder_loop(folder_path, thresh_multiplier = 5):
                 # find matching seizures
                 detected = match_szrs(bounds_true, bounds_pred, err_margin = 10)
                 
-                # get number of seizures
-                szrs[i,0,ii] = bounds_true.shape[0] # true seizure number
+                # get number of matching and extra seizures detected
                 szrs[i,1,ii] = detected # number of true seizures detected
                 szrs[i,2,ii] = bounds_pred.shape[0] - detected # number of extra seizures detected         
                 
-                # get total numbers
-                df.at[ii, 'true_total'] += bounds_true.shape[0]
-                df.at[ii, 'total_detected'] += detected
-                df.at[ii, 'total_exta'] += (bounds_pred.shape[0] - detected)
+            # get total numbers
+            df.at[ii, 'true_total'] += szrs[i,0,ii]
+            df.at[ii, 'total_detected'] +=  szrs[i,1,ii]
+            df.at[ii, 'total_exta'] += szrs[i,2,ii]
    
     return df, szrs
 
