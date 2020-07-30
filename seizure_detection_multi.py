@@ -26,6 +26,8 @@ cross_ch_param_list = (features.cross_corr,)
 
 
 def multi_folder(main_path):
+    
+    # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
     
     thresh = 5 # define threshold
@@ -33,7 +35,7 @@ def multi_folder(main_path):
         print('Analyzing', folder, '...' )
         
         # get dataframe with detected seizures
-        df, szrs =  folder_loop(os.path.join(main_path,folder_path), thresh_multiplier = thesh)
+        df, szrs =  folder_loop(os.path.join(main_path,folder), thresh_multiplier = thresh)
         
         # save dataframe as csv file
         df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh) + '.csv')
@@ -63,29 +65,29 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     for i in tqdm(range(0, len(filelist))): # loop through experiments 
 
         # get data and true labels
-        data, y_true = get_data(main_path,filelist[i], ch_num = num_channels, inner_path={'data_path':'filt_data'})
-        print('->',filelist[i], 'loaded.')
+        data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
+                                inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
         
-        # # Clean and filter data
+        ## UNCOMMENT LINE BELOW TO : Clean and filter data
         # data = preprocess_data(data,  clean = True, filt = True, verbose = 0)
         # print('-> data pre-processed.')
         
         # Get features and labels
         x_data, feature_labels = get_features_allch(data,param_list,cross_ch_param_list)
-        # get refined data
-        new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
-        x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
-        print('-> features extracted')
         
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
+        
+        # # get refined data (multiply channels)
+        # new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
+        # x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
 
         for ii in range(x_data.shape[1]): # iterate through parameteres
         
             # get boolean index
             y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
             
-            ## Uncomment for running threshold
+            ## UNCOMMENT LINE BELOW: for running threshold
             ## y_pred = running_std_detection(x_data[:,ii] , 5, int(60/5)*120)
             
             # get number of seizures
