@@ -11,16 +11,6 @@ from multiprocessing import Pool
 from numba import jit, prange
 import matplotlib.pyplot as plt
 
-# def f_basic(x):
-#     return x*x
-    
-# @timing
-# def f_parallel(array):    
-#     s = 0
-#     p = Pool()
-#     s = p.map(f_basic, array)
-#     return s
-
 
 def timing(f):
     def wrap(*args, **kwargs):
@@ -71,7 +61,7 @@ if __name__ == '__main__':
     vector_size = np.array([10**x for x in range(10)])
     
     # function list
-    func_array = [f_serial_cpython, f_serial_numba, f_parallel_numba, f_parallel_numba_nogil]
+    func_array = [ f_serial_numba, f_parallel_numba, f_parallel_numba_nogil,] #f_serial_cpython,
     
     # get function names
     function_labels = [f.__name__ for f in func_array]
@@ -79,7 +69,7 @@ if __name__ == '__main__':
     # create empty array
     exec_time = np.zeros((len(vector_size), len(func_array)))
     
-    # number of repetitions
+    # number of repetitions to get more accurate estimate
     reps = 10;  
                             
     for i in range(len(vector_size)): # iterate over increasing array size
@@ -89,15 +79,56 @@ if __name__ == '__main__':
         
             toc = 0 # zero the timer
             for iii in range(reps):
-                tic = time.time()
-                s = func_array[ii](array)
-                toc += time.time() - tic
-            exec_time[i,ii] = toc
-                
+                tic = time.time() # get time
+                s = func_array[ii](array) # execute function
+                toc += time.time() - tic # get time diifference
+            exec_time[i,ii] = toc # append time for all reps
 
-plt.plot(np.log(vector_size[3:]), exec_time[3:])
+# plot time vs input size       
+plt.figure() 
+plt.plot(np.log10(vector_size[3:]), exec_time[3:])
 plt.legend(function_labels, loc = 'upper left')
 plt.ylabel('Time (ms)')
-plt.xlabel('Log input Size')
+plt.xlabel('10^ Input Size')
+plt.title('Time required for an x*x operation for 10 times')
+
+# def f_basic(x):
+#     return x*x
+    
+# @timing
+# def f_parallel(array):    
+#     s = 0
+#     p = Pool()
+#     s = p.map(f_basic, array)
+#     return s
+
+tic = time.time()
+for i in range(20):
+
+    func_array[1](np.random.rand(100000000))
+print(time.time()-tic, 'seconds')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
