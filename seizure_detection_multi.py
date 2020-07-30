@@ -11,11 +11,12 @@ import pandas as pd
 from numba import jit
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
-from build_feature_data import get_data,preprocess_data, get_features_allch
+from build_feature_data import get_data, get_features_allch
+from preprocess import preprocess_data
 from array_helper import find_szr_idx, match_szrs, merge_close
 import matplotlib.pyplot as plt
 
-main_path =  r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640'  # 3514_3553_3639_3640  3642_3641_3560_3514
+main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 num_channels = [0,1]
 
 # define parameter list
@@ -24,17 +25,25 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
 cross_ch_param_list = (features.cross_corr,)
 
 
-def multi_folder():
+def multi_folder(main_path):
+    folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
     
-    df, szrs =  folder_loop(main_path)
-    return 1
+    thresh = 5 # define threshold
+    for folder in folders:
+        print('Analyzing', folder, '...' )
+        
+        # get dataframe with detected seizures
+        df, szrs =  folder_loop(os.path.join(main_path,folder_path), thresh_multiplier = thesh)
+        
+        # save dataframe as csv file
+        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh) + '.csv')
+        df.to_csv(df_path, index=True)
 
 
-
-def folder_loop(main_path, thresh_multiplier = 5):
+def folder_loop(folder_path, thresh_multiplier = 5):
     
     # get file list 
-    ver_path = os.path.join(main_path, 'verified_predictions_pantelis')
+    ver_path = os.path.join(folder_path, 'verified_predictions_pantelis')
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
@@ -54,12 +63,12 @@ def folder_loop(main_path, thresh_multiplier = 5):
     for i in tqdm(range(0, len(filelist))): # loop through experiments 
 
         # get data and true labels
-        data, y_true = get_data(main_path,filelist[i],ch_num = num_channels)
+        data, y_true = get_data(main_path,filelist[i], ch_num = num_channels, inner_path={'data_path':'filt_data'})
         print('->',filelist[i], 'loaded.')
         
-        # Clean and filter data
-        data = preprocess_data(data,  clean = True, filt = True, verbose = 0)
-        print('-> data pre-processed.')
+        # # Clean and filter data
+        # data = preprocess_data(data,  clean = True, filt = True, verbose = 0)
+        # print('-> data pre-processed.')
         
         # Get features and labels
         x_data, feature_labels = get_features_allch(data,param_list,cross_ch_param_list)
@@ -141,15 +150,10 @@ def running_std_detection(signal, thresh_multiplier, window):
 
 if __name__ == '__main__':
 
-
     tic = time.time() # start timer       
-    
+    multi_folder(main_path)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
 
-     
-    # df.to_pickle('df_szrs_std_3')
-    # np.save('szrs_std_3.npy', szrs)
-        
         
         
         
