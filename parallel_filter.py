@@ -20,33 +20,81 @@ def timing(f):
         return ret
     return wrap
 
-def f_parallel(x):
-    return x*x
 
+@timing
 def f_serial(array):
-    for i in range(array.shape):
-        array[i]*array[i]
-        
-@jit(nopython = True)        
-def f_serial_numba(array):
-    for i in range(array.shape):
-        array[i]*array[i]
+    s = 0
+    for i in range(array.shape[0]):
+        s += array[i]*array[i]
+    return s
 
-@jit(nopython = True, parallel = True)        
-def f_parallel_numba(array):
-    for i in prange(array.shape):
-        array[i]*array[i]         
-
-# def f2(x):
+@jit(nopython = True, nogil = False) 
+def f_basic(x):
+    x*x
     
+@timing
+def f_parallel(array):    
+    s = 0
+    p = Pool()
+    s = p.map(f_basic, array)
+    return s
+
+@timing       
+@jit(nopython = True, nogil = False)        
+def f_serial_numba(array):
+    s = 0
+    for i in range(array.shape[0]):
+        s += array[i]*array[i]
+    return s
+
+@timing
+@jit(nopython = True, parallel = True, nogil = False)        
+def f_parallel_numba(array):
+    s = 0
+    for i in prange(array.shape[0]):
+        s += array[i]*array[i]
+    return s
+
+@timing
+@jit(nopython = True, parallel = True, nogil = True)        
+def f_parallel_numba_nogil(array):
+    s = 0
+    for i in prange(array.shape[0]):
+        s += array[i]*array[i]
+    return s      
+
 
 if __name__ == '__main__':
-    # p = Pool()
+    
     
     # print(p.map(f, array))
+  
     
-    array = np.random.rand(10000)
-    timing(f_serial)
+    array = np.random.rand(1000000)
+    f_serial(array)
+    f_parallel(array)
+    f_serial_numba(array)
+    f_parallel_numba(array)
+    f_parallel_numba_nogil(array)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
