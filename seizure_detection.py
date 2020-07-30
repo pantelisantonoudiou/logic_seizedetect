@@ -8,7 +8,8 @@ Created on Fri Jul 24 08:29:12 2020
 import os, features, time
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from build_feature_data import get_data,preprocess_data, get_features_allch
+from preprocess import preprocess_data
+from build_feature_data import get_data, get_features_allch
 from array_helper import find_szr_idx, match_szrs, merge_close
 import matplotlib.pyplot as plt
 

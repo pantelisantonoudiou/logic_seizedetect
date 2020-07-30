@@ -78,9 +78,9 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
         
-        # # get refined data (multiply channels)
-        # new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
-        # x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
+        # get refined data (multiply channels)
+        new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
+        x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
 
         for ii in range(x_data.shape[1]): # iterate through parameteres
         
