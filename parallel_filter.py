@@ -108,9 +108,14 @@ for i in range(20):
     func_array[1](np.random.rand(100000000))
 print(time.time()-tic, 'seconds')
 
+s = 0
+p = Pool()
+array = np.random.rand(100000000)
+list1 = [x for x in range(20)
+s = p.apply_async(f_serial_numba, array) for x in list1])
 
-
-
+# Step 3: Don't forget to close
+p.close() 
 
 
 
