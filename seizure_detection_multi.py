@@ -85,12 +85,13 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
 
-        for ii in range(feature_labels): # iterate through parameteres  x_data.shape[1]
+        for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
 
             # get boolean index
             y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
             y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
             
+            y_pred = (y_pred1.astype(int) + y_pred2.astype(int)) == 2
             ## UNCOMMENT LINE BELOW: for running threshold
             ## y_pred = running_std_detection(x_data[:,ii] , 5, int(60/5)*120)
             
