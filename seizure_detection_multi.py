@@ -63,7 +63,9 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     
     # create seizure array
     szrs = np.zeros((len(filelist),3,feature_labels.shape[0]))
-        
+    
+    # get total time analized
+    time = 0    
     for i in tqdm(range(0, len(filelist))): # loop through experiments  
 
         # get data and true labels
@@ -83,7 +85,8 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
-
+        
+        time+=x_data.shape[0]
         for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
 
             # get boolean index
@@ -118,7 +121,8 @@ def folder_loop(folder_path, thresh_multiplier = 5):
             df.at[ii, 'true_total'] += szrs[i,0,ii]
             df.at[ii, 'total_detected'] +=  szrs[i,1,ii]
             df.at[ii, 'total_exta'] += szrs[i,2,ii]
-   
+            
+    print(time*5/60, 'minutes of eeg recordings')        
     return df, szrs
 
 
