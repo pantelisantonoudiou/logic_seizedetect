@@ -27,20 +27,19 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
 cross_ch_param_list = () # features.cross_corr
 
 
-def multi_folder(main_path):
+def multi_folder(main_path, thresh_multiplier = 5):
     
     # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
     
-    thresh = 5 # define threshold
     for folder in folders:
         print('Analyzing', folder, '...' )
         
         # get dataframe with detected seizures
-        df, szrs =  folder_loop(os.path.join(main_path,folder), thresh_multiplier = thresh)
+        df, szrs =  folder_loop(os.path.join(main_path,folder), thresh_multiplier = thresh_multiplier)
         
         # save dataframe as csv file
-        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh) + '_test.csv')
+        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh_multiplier) + '_test.csv')
         df.to_csv(df_path, index=True)
 
 
@@ -160,7 +159,7 @@ def running_std_detection(signal, thresh_multiplier, window):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path)
+    multi_folder(main_path, thresh_multiplier = 4)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
 
         
