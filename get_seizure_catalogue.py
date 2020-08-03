@@ -38,11 +38,13 @@ def multi_folder(main_path):
         print('Analyzing', folder, '...' )
         
         # get dataframe with detected seizures
-        df, szrs =  folder_loop(os.path.join(main_path,folder))
+        df =  folder_loop(os.path.join(main_path,folder))
         
-        # save dataframe as csv file
-        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh_multiplier) + '_test.csv')
-        df.to_csv(df_path, index=True)
+        # add df append!!!!
+    return df
+        
+
+        
 
 
 def folder_loop(folder_path):
@@ -82,31 +84,28 @@ def folder_loop(folder_path):
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
         
-        for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
+        for ii in range(1): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
+        
+        # get multifeatures????
 
             # get seizure index
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
  
-            # get experiment id
-            exp_id = [filelist[i]]
             if bounds_true.shape[0] > 0:
         
-                
                 # get seizure and surround properties
                 szrs = get_surround(x_data[:,6], bounds_true, np.array([30, 120]))
                 df_temp = pd.DataFrame(data = szrs, columns = ['before_szr', 'during_szr','after_szr'])
                 
+                # insert seizure start and end
                 df_temp.insert(0, 'szr_end', bounds_true[:,1])
                 df_temp.insert(0, 'szr_start', bounds_true[:,0])
                 
-                # multiply exp id to a list equivalent to the number of seizures
-                exp_id *= bounds_true.shape[0]
+                # insert exp ids
                 df_temp.insert(0, 'exp_id', [filelist[i]] * bounds_true.shape[0])
                 
                 # append to dataframe
-                df.append(df_temp)
-                import pdb; pdb.set_trace()
-            
+                df = df.append(df_temp)
     return df
 
 
@@ -144,7 +143,7 @@ def get_surround(feature, idx, surround_time):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path, )
+    multi_folder(main_path)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
     
     
