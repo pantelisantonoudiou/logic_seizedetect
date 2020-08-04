@@ -9,13 +9,14 @@ Created on Mon Aug  3 16:47:30 2020
 import os, features, time
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from numba import jit
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from preprocess import preprocess_data
 from build_feature_data import get_data, get_features_allch
-from array_helper import find_szr_idx, match_szrs, merge_close
-import matplotlib.pyplot as plt
+from array_helper import find_szr_idx
+
 
 main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 # folder_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
@@ -109,7 +110,7 @@ def folder_loop(folder_path):
                 df = df.append(df_temp)
     return df
 
-
+@jit(nopython = True)
 def get_surround(feature, idx, surround_time):
     """
     get_surround(feature, idx, surround_time)
@@ -126,7 +127,8 @@ def get_surround(feature, idx, surround_time):
 
     """
     
-    outbins = np.int64(surround_time/win) # convert bounds to bins
+    outbins = surround_time/win # convert bounds to bins
+    outbins = outbins.astype(np.int64) # convert to integer
     
     # create empty vectors to store before, after and within seizure features
     szrs = np.zeros((idx.shape[0],3))
