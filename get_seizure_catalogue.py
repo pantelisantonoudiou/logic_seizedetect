@@ -34,17 +34,18 @@ def multi_folder(main_path):
     # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
     
-    for folder in folders:
-        print('Analyzing', folder, '...' )
+    for i in range(len(folders)):
+        print('Analyzing', folders[i], '...' )
         
         # get dataframe with detected seizures
-        df =  folder_loop(os.path.join(main_path,folder))
+        df_temp = folder_loop(os.path.join(main_path,folders[i]))
         
-        # add df append!!!!
-    return df
-        
+        if i == 0: # create copy of the dataframe
+            df = df_temp.copy()
+        else: # append to dataframe
+            df.append(df_temp)    
 
-        
+    return df
 
 
 def folder_loop(folder_path):
@@ -64,7 +65,7 @@ def folder_loop(folder_path):
     columns = ['exp_id', 'szr_start','szr_end' , 'before_szr', 'during_szr','after_szr']
     df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
 
-    for i in tqdm(range(0, len(filelist))): # loop through experiments  
+    for i in tqdm(range(0,2 )): # loop through experiments   len(filelist)
 
         # get data and true labels
         data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
@@ -143,7 +144,7 @@ def get_surround(feature, idx, surround_time):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path)
+    df = multi_folder(main_path)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
     
     
