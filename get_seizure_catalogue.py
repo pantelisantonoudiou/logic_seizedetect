@@ -63,10 +63,10 @@ def folder_loop(folder_path):
     feature_labels = np.array(feature_labels)
     
     # create dataframe
-    columns = ['exp_id', 'szr_start','szr_end' , 'before_szr', 'during_szr','after_szr']
+    columns = ['exp_id', 'szr_start','szr_end' , 'before_szr', 'during_szr','after_szr','szr_percentile','x_sdevs']
     df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
 
-    for i in tqdm(range(0,2 )): # loop through experiments   len(filelist)
+    for i in tqdm(range(0,len(filelist))): # loop through experiments   len(filelist)
 
         # get data and true labels
         data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
@@ -86,9 +86,10 @@ def folder_loop(folder_path):
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
         
+        # GET multifeatures????
         for ii in range(1): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
         
-        # get multifeatures????
+        
 
             # get seizure index
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
@@ -97,7 +98,7 @@ def folder_loop(folder_path):
         
                 # get seizure and surround properties
                 szrs = get_surround(x_data[:,6], bounds_true, np.array([30, 120]))
-                df_temp = pd.DataFrame(data = szrs, columns = ['before_szr', 'during_szr','after_szr'])
+                df_temp = pd.DataFrame(data = szrs, columns = ['before_szr', 'during_szr','after_szr','szr_percentile','x_sdevs'])
                 
                 # insert seizure start and end
                 df_temp.insert(0, 'szr_end', bounds_true[:,1])
@@ -111,6 +112,7 @@ def folder_loop(folder_path):
     return df
 
 @jit(nopython = True)
+# from scipy.stats import percentileofscore
 def get_surround(feature, idx, surround_time):
     """
     get_surround(feature, idx, surround_time)
@@ -131,16 +133,34 @@ def get_surround(feature, idx, surround_time):
     outbins = outbins.astype(np.int64) # convert to integer
     
     # create empty vectors to store before, after and within seizure features
-    szrs = np.zeros((idx.shape[0],3))
+    szrs = np.zeros((idx.shape[0],5))
+    
+    # get percentile of during szr vs rest of feature
     
     for i in range(idx.shape[0]): # iterate over seizure number
 
         # get feature before withing and after seizure
-        szrs[i,0] = np.mean(feature[idx[i,0] - outbins[1]: idx[i,0] - outbins[0]]) # vef
-        szrs[i,1] = np.mean(feature[idx[i,0]:idx[i,1]])
-        szrs[i,2] = np.mean(feature[idx[i,1] + outbins[0]: idx[i,1] + outbins[1]])            
+        szrs[i,0] = np.mean(feature[idx[i,0] - outbins[1]: idx[i,0] - outbins[0]]) # bef
+        szrs[i,1] = np.mean(feature[idx[i,0]:idx[i,1]]) # during
+        szrs[i,2] = np.mean(feature[idx[i,1] + outbins[0]: idx[i,1] + outbins[1]]) # after
+        
+        szrs[i,3] = find_nearest(remap_array(np.sort(feature)), szrs[i,1]) # get percentile
+        szrs[i,4] = ( szrs[i,1]-np.mean(feature))/np.std(feature) # get deviations from mean
+        
     return szrs
 
+@jit(nopython = True)
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
+@jit(nopython = True)
+def remap_array(array):
+    min_value = array.min()
+    max_value = array.max()
+    a = (array - min_value) / (max_value - min_value) * 100
+    return a
 
 
 if __name__ == '__main__':
