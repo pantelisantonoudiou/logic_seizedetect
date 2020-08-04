@@ -88,8 +88,6 @@ def folder_loop(folder_path):
         
         # GET multifeatures????
         for ii in range(1): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
-        
-        
 
             # get seizure index
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
@@ -111,8 +109,8 @@ def folder_loop(folder_path):
                 df = df.append(df_temp)
     return df
 
-@jit(nopython = True)
-# from scipy.stats import percentileofscore
+# @jit(nopython = True)
+from scipy.stats import percentileofscore
 def get_surround(feature, idx, surround_time):
     """
     get_surround(feature, idx, surround_time)
@@ -143,8 +141,9 @@ def get_surround(feature, idx, surround_time):
         szrs[i,0] = np.mean(feature[idx[i,0] - outbins[1]: idx[i,0] - outbins[0]]) # bef
         szrs[i,1] = np.mean(feature[idx[i,0]:idx[i,1]]) # during
         szrs[i,2] = np.mean(feature[idx[i,1] + outbins[0]: idx[i,1] + outbins[1]]) # after
-        
-        szrs[i,3] = find_nearest(remap_array(np.sort(feature)), szrs[i,1]) # get percentile
+   
+        remapped_array = remap_array(np.sort(feature)) # remap array from 0 to 100
+        szrs[i,3] = percentileofscore (remapped_array, szrs[i,1]) # get percentile
         szrs[i,4] = ( szrs[i,1]-np.mean(feature))/np.std(feature) # get deviations from mean
         
     return szrs
