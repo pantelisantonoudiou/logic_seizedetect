@@ -70,11 +70,16 @@ def folder_loop(folder_path):
                          [0, 30],
                          [30, 60],
                          [60, 90],
-                         [90, 120]
+                         [90, 120],
                          ])
+    
+    # define columns
+    columns = ['exp_id', 'szr_start', 'szr_end', 'szr_percentile','x_sdevs', 'during_szr']
+    
     time_cols = [] # convert time bins to headers
     for x in time_bins.tolist():
-        time_cols.append('_'.join(map(str, x)))
+        time_cols.append('_'.join(map(str, x))) 
+    columns.extend(time_cols)  # extend original columns list   
 
     for i in tqdm(range(0,len(filelist))): # loop through experiments   len(filelist)
 
@@ -87,10 +92,6 @@ def folder_loop(folder_path):
         
         # Get features and labels
         x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
-        
-        #  UNCOMMENT LINES BELOW TO : get refined data (multiply channels)
-        # new_data = np.multiply(x_data[:,0:len(param_list)],x_data[:,len(param_list):x_data.shape[1]-len(cross_ch_param_list)])
-        # x_data = np.concatenate((new_data, x_data[:,x_data.shape[1]-1:]), axis=1)
         
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
