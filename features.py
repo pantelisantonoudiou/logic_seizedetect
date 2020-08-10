@@ -6,7 +6,7 @@ Created on Tue Jul 21 12:10:02 2020
 """
 import numpy as np
 from numba import jit
-from scipy.signal import welch
+from scipy.signal import welch, hilbert
 from scipy.fftpack import fft
 
 @jit(nopython = True)
@@ -272,18 +272,62 @@ def psd_welch(signal, fs = 100, freq = [5,25]):
 
 
 @jit(nopython = True)
-def cross_corr(signal1,signal2):
+def cross_corr(signal1, signal2):
     """
     cross_corr(signal1,signal2)
-    Measures the cross correlation of two signals
+    Measures the cross correlation of two signals with same size
 
     Parameters
     ----------
-    signal : 1D numpy array
+    signal1 : 1D numpy array
+    signal2 : 1D numpy array
     -------
-    auto_corr value at 0 : np.float
+
     """
     return np.correlate(signal1,signal2)
+
+
+@jit(nopython = True)
+def signal_covar(signal1, signal2):
+    """
+    signal_covar(signal1,signal2)
+    Measures the covariance between two signals with same size
+
+    Parameters
+    ----------
+    signal1 : 1D numpy array
+    signal2 : 1D numpy array
+    -------
+
+    """
+    return np.cov(signal1,signal2)[0][1]
+
+
+def signal_covar_hilbert(signal1, signal2):
+    """
+    signal_covar_hilbert(signal1,signal2)
+    Measures the covariance between hilbert amp of two signals with same size
+
+    Parameters
+    ----------
+    signal1 : 1D numpy array
+    signal2 : 1D numpy array
+    -------
+    """
+    return np.cov(np.abs(hilbert(signal1)), np.abs(hilbert(signal2)))[0][1]
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

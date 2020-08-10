@@ -24,7 +24,7 @@ num_channels = [0,1]
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
-cross_ch_param_list = () # features.cross_corr
+cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_covar_hilbert,) # 
 
 
 def multi_folder(main_path, thresh_multiplier = 5):
@@ -39,7 +39,7 @@ def multi_folder(main_path, thresh_multiplier = 5):
         df, szrs =  folder_loop(os.path.join(main_path,folder), thresh_multiplier = thresh_multiplier)
         
         # save dataframe as csv file
-        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh_multiplier) + '_test.csv')
+        df_path = os.path.join(main_path,folder+'_thresh_'+str(thresh_multiplier) + '.csv')
         df.to_csv(df_path, index=True)
 
 
@@ -66,7 +66,7 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     
     # get total time analized
     time = 0    
-    for i in tqdm(range(0, len(filelist))): # loop through experiments  
+    for i in tqdm(range(0, len(filelist))): # loop through experiments
 
         # get data and true labels
         data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
@@ -90,10 +90,11 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
 
             # get boolean index
-            y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
-            y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
+            y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            # y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            # y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
             
-            y_pred = (y_pred1.astype(int) + y_pred2.astype(int)) == 2
+            # y_pred = (y_pred1.astype(int) + y_pred2.astype(int)) == 2
             ## UNCOMMENT LINE BELOW: for running threshold
             ## y_pred = running_std_detection(x_data[:,ii] , 5, int(60/5)*120)
             

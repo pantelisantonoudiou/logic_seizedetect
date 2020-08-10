@@ -18,7 +18,7 @@ num_channels = [0,1]
 
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,)
-cross_ch_param_list = (features.cross_corr,)
+cross_ch_param_list = (features.cross_corr,features.signal_covar)
 
 tic = time.time() # start timer
 
@@ -39,7 +39,7 @@ def file_loop(main_path):
         print('->',filelist[i], 'loaded.')
         
         # Clean and filter data
-        data = preprocess_data(data,  clean = True, filt = True)
+        data = preprocess_data(data,  clean = True, filt = False)
         print('-> data pre-processed.')
         
         # Get features and labels
@@ -53,7 +53,7 @@ def file_loop(main_path):
         xbest = x_data[:,1] * x_data[:,9] 
         threshold = np.mean(xbest) + 4*np.std(xbest)
         y_pred = xbest>threshold      
-        
+        breakpoint()
         # get number of  seizures
         bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
         bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
