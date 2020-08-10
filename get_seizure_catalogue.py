@@ -74,7 +74,7 @@ def folder_loop(main_path,folder_path):
                          [90, 120], 
                          ])
     
-    # define columns
+    # define fixed columns
     columns = ['exp_id', 'szr_start', 'szr_end', 'szr_percentile','x_sdevs', 'during_szr']
     
     time_cols = [] # convert time bins to headers
@@ -115,10 +115,12 @@ def folder_loop(main_path,folder_path):
                 df['exp_id'] = [os.path.join(folder_path,filelist[i])] * bounds_true.shape[0]
                 df['szr_start'] = bounds_true[:,0]
                 df['szr_end'] =  bounds_true[:,1]
-                df2.iloc[:, 3:] szrs
+                
+                # append seizure properties
+                df.iloc[:, 3:] = szrs 
                 
                 # append to dataframe
-                df_temp.to_csv(labels[i] +'.csv', mode='a', header=True, index = False) # ADD CORRECT NAME
+                df.to_csv(labels[i] +'.csv', mode='a', header=True, index = False) # ADD CORRECT NAME
     return df
 
 # @jit(nopython = True)
@@ -150,7 +152,7 @@ def get_surround(feature, idx, time_bins):
     for i in range(idx.shape[0]): # iterate over seizure number
         
         szr_feature = np.mean(feature[idx[i,0]:idx[i,1]]) # during
-        szrs[i,0] = percentileofscore (feature, szr_feature) # get percentile
+        szrs[i,0] = percentileofscore(feature, szr_feature) # get percentile
         szrs[i,1] = (szr_feature-np.mean(feature))/np.std(feature) # get deviations from mean  
         szrs[i,2] = szr_feature
         
