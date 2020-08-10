@@ -63,14 +63,15 @@ def folder_loop(main_path,folder_path):
     feature_labels = np.array(feature_labels)
     
     # define time bins
-    time_bins = np.array([[-120, -90],
+    time_bins = np.array([
+                         [-120, -90],
                          [-90, -60], 
                          [-60, -30], 
                          [-30, 0],
                          [0, 30],
                          [30, 60],
                          [60, 90],
-                         [90, 120],
+                         [90, 120], 
                          ])
     
     # define columns
@@ -114,7 +115,7 @@ def folder_loop(main_path,folder_path):
                 df['exp_id'] = [os.path.join(folder_path,filelist[i])] * bounds_true.shape[0]
                 df['szr_start'] = bounds_true[:,0]
                 df['szr_end'] =  bounds_true[:,1]
-
+                df2.iloc[:, 3:] szrs
                 
                 # append to dataframe
                 df_temp.to_csv(labels[i] +'.csv', mode='a', header=True, index = False) # ADD CORRECT NAME
