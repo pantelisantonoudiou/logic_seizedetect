@@ -19,15 +19,10 @@ from array_helper import find_szr_idx
 ##### ----------------------------------------------------------------- #####
 
 
-### SETTINGS ###
+### -------------SETTINGS --------------###
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 num_channels = [0,1] # channel list
 win = 5 # window duration
-
-# mk save dir
-save_folder = 'szr_catalogue'
-if os.path.exists(save_folder) is False:
-    os.mkdir(save_folder)
 
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
@@ -46,6 +41,13 @@ def multi_folder(main_path):
 
     """
     
+    # mk save dir
+    save_folder = os.path.join(main_path, 'szr_catalogue')
+    
+    # save folder
+    if os.path.exists(save_folder) is False:
+        os.mkdir(save_folder)
+    
     # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
 
@@ -53,11 +55,11 @@ def multi_folder(main_path):
         print('Analyzing', folders[i], '...' )
         
         # get dataframe with detected seizures
-        folder_loop(main_path, folders[i])
+        folder_loop(main_path, save_folder, folders[i])
     print('Seizure catalogue successfully created.')
 
 
-def folder_loop(main_path, folder_path):
+def folder_loop(main_path, save_folder, folder_path):
     """
     folder_loop(main_path, folder_path)
     
@@ -103,7 +105,7 @@ def folder_loop(main_path, folder_path):
     for x in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
        # create empty dataframe
        df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
-       df.to_csv(feature_labels[x] +'.csv', mode='a', header=True, index = False)
+       df.to_csv(os.path.join(save_folder, labels[ii] +'.csv'), mode='a', header=True, index = False)
 
     for i in tqdm(range(0,len(filelist))): # loop through experiments   len(filelist)
 
