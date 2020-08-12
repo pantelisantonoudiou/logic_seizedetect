@@ -105,7 +105,7 @@ def folder_loop(main_path, save_folder, folder_path):
     for x in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
        # create empty dataframe
        df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
-       df.to_csv(os.path.join(save_folder, labels[ii] +'.csv'), mode='a', header=True, index = False)
+       df.to_csv(os.path.join(save_folder, feature_labels[x] +'.csv'), mode='a', header=True, index = False)
 
     for i in tqdm(range(0,len(filelist))): # loop through experiments   len(filelist)
 
@@ -143,7 +143,7 @@ def folder_loop(main_path, save_folder, folder_path):
                 df.iloc[:, 3:] = szrs 
                 
                 # append to dataframe
-                df.to_csv(os.path.join(save_folder, labels[ii] +'.csv'), mode='a', header=False, index = False)
+                df.to_csv(os.path.join(save_folder, feature_labels[ii] +'.csv'), mode='a', header=False, index = False)
 
 
 def get_surround(feature, idx, time_bins):
