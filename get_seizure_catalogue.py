@@ -6,11 +6,10 @@ Created on Mon Aug  3 16:47:30 2020
 """
 
 ##### ------------------------------ IMPORTS -------------------------- #####
-import os, features, time,sys
+import os, features, sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from numba import jit
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from preprocess import preprocess_data
@@ -54,6 +53,7 @@ def multi_folder(main_path):
         
         # get dataframe with detected seizures
         folder_loop(main_path, folders[i])
+    print('Seizure catalogue successfully created.')
 
 
 def folder_loop(main_path, folder_path):
@@ -190,7 +190,7 @@ def get_surround(feature, idx, time_bins):
 if __name__ == '__main__':
     
     if len(sys.argv) == 2:
-        multi_folder(sys.argv[1])
+        multi_folder(sys.argv[1])  
     else:
         print('Please provide parent directory')
 
