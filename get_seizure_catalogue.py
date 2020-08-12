@@ -26,7 +26,8 @@ win = 5 # window duration
 
 # mk save dir
 save_folder = 'szr_catalogue'
-os.mkdir(save_folder)
+if os.path.exists(save_folder) is False:
+    os.mkdir(save_folder)
 
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
@@ -190,6 +191,7 @@ def get_surround(feature, idx, time_bins):
 if __name__ == '__main__':
     
     if len(sys.argv) == 2:
+        print('Creating seizure catalogue from', sys.argv[1])
         multi_folder(sys.argv[1])  
     else:
         print('Please provide parent directory')
