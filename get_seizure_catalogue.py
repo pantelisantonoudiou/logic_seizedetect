@@ -5,7 +5,7 @@ Created on Mon Aug  3 16:47:30 2020
 @author: Pante
 """
 
-
+##### ------------------------------ IMPORTS -------------------------- #####
 import os, features, time
 import numpy as np
 import pandas as pd
@@ -14,42 +14,38 @@ from numba import jit
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from preprocess import preprocess_data
+from scipy.stats import percentileofscore
 from build_feature_data import get_data, get_features_allch
 from array_helper import find_szr_idx
-
+##### ----------------------------------------------------------------- #####
 
 main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
-# folder_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
-num_channels = [0,1]
-win = 5
+num_channels = [0,1] # channel list
+win = 5 # window duration
 
+# mk save dir
+save_folder = 'szr_catalogue'
+os.mkdir(save_folder)
 
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
-cross_ch_param_list = () # features.cross_corr
+cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # features.cross_corr
 
 
 def multi_folder(main_path):
     
     # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
-    
+
     for i in range(len(folders)):
         print('Analyzing', folders[i], '...' )
         
         # get dataframe with detected seizures
-        df_temp = folder_loop(main_path,folders[i])
-        
-        if i == 0: # create copy of the dataframe
-            df = df_temp.copy()
-        else: # append to dataframe
-            df.append(df_temp)    
-
-    return df
+        folder_loop(main_path, folders[i])
 
 
-def folder_loop(main_path,folder_path):
+def folder_loop(main_path, folder_path):
     
     # get file list 
     ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
@@ -81,6 +77,12 @@ def folder_loop(main_path,folder_path):
     for x in time_bins.tolist():
         time_cols.append('_'.join(map(str, x))) 
     columns.extend(time_cols)  # extend original columns list   
+        
+    # create csv
+    for x in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
+       # create empty dataframe
+       df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
+       df.to_csv(feature_labels[x] +'.csv', mode='a', header=True, index = False)
 
     for i in tqdm(range(0,len(filelist))): # loop through experiments   len(filelist)
 
@@ -97,8 +99,7 @@ def folder_loop(main_path,folder_path):
         # Normalize data
         x_data = StandardScaler().fit_transform(x_data)
         
-        # GET multifeatures????
-        for ii in range(1): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
+        for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1] len(feature_labels) 
         
             # create dataframe
             df = pd.DataFrame(data= np.zeros((0,len(columns))), columns = columns, dtype=np.int64)
@@ -107,7 +108,6 @@ def folder_loop(main_path,folder_path):
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
  
             if bounds_true.shape[0] > 0:
-        
                 # get seizure and surround properties
                 szrs = get_surround(x_data[:,ii], bounds_true, time_bins)
                 
@@ -120,11 +120,10 @@ def folder_loop(main_path,folder_path):
                 df.iloc[:, 3:] = szrs 
                 
                 # append to dataframe
-                df.to_csv(labels[i] +'.csv', mode='a', header=True, index = False) # ADD CORRECT NAME
-    return df
+                df.to_csv(os.path.join(save_folder, labels[ii] +'.csv'), mode='a', header=False, index = False)
+
 
 # @jit(nopython = True)
-from scipy.stats import percentileofscore
 def get_surround(feature, idx, time_bins):
     """
     get_surround(feature, idx, time_bins)
@@ -163,37 +162,38 @@ def get_surround(feature, idx, time_bins):
             else:
                 idx_start =  idx[i,1] + time_bins[ii,0];
                 idx_end = idx[i,1] + time_bins[ii,1];
-            print(idx_start, idx_end)
             
+            # add feature mean
             szrs[i,ii+fixed_bins] = np.mean(feature[idx_start : idx_end])
-            
     return szrs
-
-@jit(nopython = True)
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
-
-#  remapped_array = remap_array(np.sort(feature)) # remap array from 0 to 100
-@jit(nopython = True)
-def remap_array(array):
-    min_value = array.min()
-    max_value = array.max()
-    a = (array - min_value) / (max_value - min_value) * 100
-    return a
 
 
 if __name__ == '__main__':
-
     tic = time.time() # start timer       
-    df = multi_folder(main_path)
+    multi_folder(main_path)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
     
     
-    
-    
-    
+
+
+
+
+
+
+
+# @jit(nopython = True)
+# def find_nearest(array, value):
+#     array = np.asarray(array)
+#     idx = (np.abs(array - value)).argmin()
+#     return array[idx]
+
+# #  remapped_array = remap_array(np.sort(feature)) # remap array from 0 to 100
+# @jit(nopython = True)
+# def remap_array(array):
+#     min_value = array.min()
+#     max_value = array.max()
+#     a = (array - min_value) / (max_value - min_value) * 100
+#     return a   
     
     
     

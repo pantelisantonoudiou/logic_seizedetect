@@ -290,7 +290,7 @@ def cross_corr(signal1, signal2):
 @jit(nopython = True)
 def signal_covar(signal1, signal2):
     """
-    signal_covar(signal1,signal2)
+    signal_covar(signal1, signal2)
     Measures the covariance between two signals with same size
 
     Parameters
@@ -302,6 +302,29 @@ def signal_covar(signal1, signal2):
     """
     return np.cov(signal1,signal2)[0][1]
 
+@jit(nopython = True)
+def signal_abs_covar(signal1, signal2):
+    """
+    signal_abs_covar(signal1, signal2)
+    Measures the absolute covariance between two signals with same size
+
+    Parameters
+    ----------
+    signal1 : 1D numpy array
+    signal2 : 1D numpy array
+    -------
+    """
+    
+    x1 = np.mean(signal1)
+    x2 = np.mean(signal2)
+    
+    abs_covar = np.zeros(signal1.shape[0])
+    
+    for i in range(signal1.shape[0]):
+        abs_covar[i] = np.abs(signal1[i]-x1) * np.abs(signal2[i]-x2)
+        
+    return np.sum(abs_covar)/signal1.shape[0]
+        
 
 def signal_covar_hilbert(signal1, signal2):
     """

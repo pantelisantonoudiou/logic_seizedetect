@@ -24,7 +24,7 @@ num_channels = [0,1]
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
-cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_covar_hilbert,) # 
+cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # features.signal_covar_hilbert
 
 
 def multi_folder(main_path, thresh_multiplier = 5):
@@ -164,7 +164,7 @@ def running_std_detection(signal, thresh_multiplier, window):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path, thresh_multiplier = 4)
+    multi_folder(main_path, thresh_multiplier = 5)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
 
         

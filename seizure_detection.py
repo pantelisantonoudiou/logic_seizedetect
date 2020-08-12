@@ -53,7 +53,7 @@ def file_loop(main_path):
         xbest = x_data[:,1] * x_data[:,9] 
         threshold = np.mean(xbest) + 4*np.std(xbest)
         y_pred = xbest>threshold      
-        breakpoint()
+        
         # get number of  seizures
         bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
         bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
