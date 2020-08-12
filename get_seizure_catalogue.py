@@ -6,7 +6,7 @@ Created on Mon Aug  3 16:47:30 2020
 """
 
 ##### ------------------------------ IMPORTS -------------------------- #####
-import os, features, time
+import os, features, time,sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,7 +19,9 @@ from build_feature_data import get_data, get_features_allch
 from array_helper import find_szr_idx
 ##### ----------------------------------------------------------------- #####
 
-main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+
+### SETTINGS ###
+# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 num_channels = [0,1] # channel list
 win = 5 # window duration
 
@@ -31,9 +33,18 @@ os.mkdir(save_folder)
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # features.cross_corr
-
+##### ----------------------------------------------------------------- #####
 
 def multi_folder(main_path):
+    """
+    multi_folder(main_path)
+    Loop though folder paths to get 
+
+    Parameters
+    ----------
+    main_path : Str, to parent dir
+
+    """
     
     # get subdirectories
     folders = [f.name for f in os.scandir(main_path) if f.is_dir()]
@@ -46,6 +57,22 @@ def multi_folder(main_path):
 
 
 def folder_loop(main_path, folder_path):
+    """
+    folder_loop(main_path, folder_path)
+    
+
+    Parameters
+    ----------
+    main_path : TYPE
+        DESCRIPTION.
+    folder_path : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
     
     # get file list 
     ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
@@ -123,16 +150,15 @@ def folder_loop(main_path, folder_path):
                 df.to_csv(os.path.join(save_folder, labels[ii] +'.csv'), mode='a', header=False, index = False)
 
 
-# @jit(nopython = True)
 def get_surround(feature, idx, time_bins):
     """
     get_surround(feature, idx, time_bins)
 
     Parameters
     ----------
-    feature : TYPE
-    idx : TYPE
-    surround_time : TYPE
+    feature : 1d ndarray
+    idx : 2d ndarray, szr index
+    time_bins : 2d ndarray, relative time to seizure to extract properties
 
     Returns
     -------
@@ -169,16 +195,12 @@ def get_surround(feature, idx, time_bins):
 
 
 if __name__ == '__main__':
-    tic = time.time() # start timer       
-    multi_folder(main_path)
-    print('Time elapsed = ',time.time() - tic, 'seconds.')  
+    
+    if len(sys.argv) == 2:
+        multi_folder(sys.argv[1])
+
     
     
-
-
-
-
-
 
 
 # @jit(nopython = True)
