@@ -60,17 +60,10 @@ def folder_loop(main_path, folder_path):
     """
     folder_loop(main_path, folder_path)
     
-
     Parameters
     ----------
-    main_path : TYPE
-        DESCRIPTION.
-    folder_path : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
+    main_path : Str, to parent dir
+    folder_path : Str, to child dir
 
     """
     
@@ -80,8 +73,8 @@ def folder_loop(main_path, folder_path):
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
     # create feature labels
-    feature_labels = [x.__name__ + '_1' for x in param_list]; 
-    feature_labels += [x.__name__ + '_2' for x in param_list]; 
+    feature_labels = [x.__name__ + '_1' for x in param_list]
+    feature_labels += [x.__name__ + '_2' for x in param_list]
     feature_labels += [x.__name__  for x in cross_ch_param_list]
     feature_labels = np.array(feature_labels)
     
@@ -198,6 +191,8 @@ if __name__ == '__main__':
     
     if len(sys.argv) == 2:
         multi_folder(sys.argv[1])
+    else:
+        print('Please provide parent directory')
 
     
     
