@@ -12,15 +12,8 @@ from build_feature_data import get_data, get_features_allch
 import matplotlib.pyplot as plt
 
 
-def create_cost(y_true, y_pred):
-    # get number of seizures
-    bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
-    bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
-    
-    # merge seizures close together
-    if bounds_pred.shape[0]>1:
-        bounds_pred = merge_close(bounds_pred, merge_margin = 5)
-    
+def create_cost(bounds_true, bounds_pred):
+
     # find matching seizurs
     detected = 0
     if bounds_pred.shape[0]>0:
@@ -33,8 +26,8 @@ def create_cost(y_true, y_pred):
     b = (bounds_pred.shape[0] - detected)
     
     # cost function
-    L = 0.01
-    cost = (-(1-a) + np.log10(b))* L
+    L = 1 # learning rate
+    cost = (-(1-a)*2 + np.log10(b+1))**2
     
     return cost
 
@@ -47,25 +40,46 @@ def find_threshold(x_data, y_true):
     
     x = x_data[:,ftr]
     
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    t = np.ones(x.shape[0]) * (np.mean(x) + thresh*np.std(x))
-    line1 = ax.plot(x)
-    line2 = ax.plot(t)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # t = np.ones(x.shape[0]) * (np.mean(x) + thresh*np.std(x))
+    # line1 = ax.plot(x)
+    # line2 = ax.plot(t)
     
-    for i in range(1000):
+    n_loop = 200
+    cost_array = np.zeros(n_loop)
+    # thresh_array = np.zeros(n_loop)
+    thresh_array = np.linspace(0, 20, n_loop)
+    for i in range(n_loop):
         # time.sleep(1)
         
-        y_pred = x> (np.mean(x) + thresh*np.std(x))
-        cost = create_cost(y_true, y_pred) # get cost
+        # thresh_array[i] = thresh  
+        y_pred = x> (np.mean(x) + thresh_array[i]*np.std(x))
+        
+        # get number of seizures
+        bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
+        bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
+        
+        # merge seizures close together
+        if bounds_pred.shape[0]>1:
+            bounds_pred = merge_close(bounds_pred, merge_margin = 5)
+        
+        cost = create_cost(bounds_true, bounds_pred) # get cost
+        cost_array[i] = cost
+        
         # if cost == 0:
         #     print('cost has reached zero, stopping')
-        thresh += cost # update cost
-        ax.plot(np.ones(x.shape[0]) * (np.mean(x) + thresh*np.std(x)))
-        print('thresh =', thresh,'cost =', cost)
+        # thresh += cost # update cost
+        # ax.plot(np.ones(x.shape[0]) * (np.mean(x) + thresh*np.std(x)))
+        # print('thresh =', thresh,'cost =', cost)
         # line2[0].set_ydata(np.ones(x.shape[0]) * (np.mean(x) + thresh*np.std(x)))
         # fig.canvas.draw()  
-
+        
+    plt.plot(thresh_array, cost_array)
+    plt.ylabel('cost')
+    plt.xlabel('thresh')
+        
+        
 
 
 
