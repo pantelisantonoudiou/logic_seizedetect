@@ -31,6 +31,8 @@ def create_cost(bounds_true, bounds_pred):
     
     return cost
 
+from sklearn.metrics import log_loss,recall_score
+
 
 
 def find_threshold(x_data, y_true):
@@ -56,15 +58,16 @@ def find_threshold(x_data, y_true):
         # thresh_array[i] = thresh  
         y_pred = x> (np.mean(x) + thresh_array[i]*np.std(x))
         
-        # get number of seizures
-        bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
-        bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
+        # # get number of seizures
+        # bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
+        # bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
         
-        # merge seizures close together
-        if bounds_pred.shape[0]>1:
-            bounds_pred = merge_close(bounds_pred, merge_margin = 5)
+        # # merge seizures close together
+        # if bounds_pred.shape[0]>1:
+        #     bounds_pred = merge_close(bounds_pred, merge_margin = 5)
         
-        cost = create_cost(bounds_true, bounds_pred) # get cost
+        # cost = create_cost(bounds_true, bounds_pred) # get cost
+        cost = log_loss(y_true, y_pred ,labels =[True,False])
         cost_array[i] = cost
         
         # if cost == 0:
@@ -92,12 +95,12 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
 
   # get data and true labels
 exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
-data, y_true = get_data(exp_path, '071719_3560',ch_num = [0,1], 
+# 071919_3514 071719_3560
+data, y_true = get_data(exp_path, '071919_3514',ch_num = [0,1], 
                         inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 # get features
 x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
-
 
 # Normalize data
 x_data = StandardScaler().fit_transform(x_data)
