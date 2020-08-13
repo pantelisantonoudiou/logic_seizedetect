@@ -151,7 +151,8 @@ def merge_close(bounds, merge_margin = 5):
     # padd with zeros for peak detection
     merge_idx = np.insert(merge_idx,0,False)# add one false to allow peak detection at zero index
     merge_idx = np.insert(merge_idx,merge_idx.shape[0],False)# add one false to allow peak detection at zero index
-    merge_idx = find_szr_idx(merge_idx,[0,0]) - 1; # get index of merged segments (-1 for false addition at 0 element)
+    merge_idx = find_szr_idx(merge_idx,[0,0]); # get index of merged segments 
+    merge_idx -= 1 # (-1 for false addition at 0 element)
     
     # make a copy and leave unchanged, index for original array
     idx = np.copy(merge_idx)
@@ -166,11 +167,6 @@ def merge_close(bounds, merge_margin = 5):
         
     return bounds_out
         
-
-         
-    
-
-
 
 # find matching seizures     
 @jit(nopython=True) 
@@ -189,7 +185,8 @@ def match_szrs(idx_true, idx_pred, err_margin = 5):
     matching : Int, number of matching seizures
 
     """
-    matching = 0
+    matching = 0 # number of matching seizures
+    
     for i in range(idx_true.shape[0]):
         
         # does min bound match within error margin?
@@ -201,6 +198,7 @@ def match_szrs(idx_true, idx_pred, err_margin = 5):
         # do both bounds match?
         if max_bound is True & min_bound is True:
             matching += 1
+            
     return matching
 
 
