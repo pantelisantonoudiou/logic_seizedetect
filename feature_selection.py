@@ -198,7 +198,20 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 
+# @jit(nopython = True)
+# def find_nearest(array, value):
+#     array = np.asarray(array)
+#     idx = (np.abs(array - value)).argmin()
+#     return array[idx]
 
+# #  remapped_array = remap_array(np.sort(feature)) # remap array from 0 to 100
+# @jit(nopython = True)
+# def remap_array(array):
+#     min_value = array.min()
+#     max_value = array.max()
+#     a = (array - min_value) / (max_value - min_value) * 100
+#     return a   
+    
 
 
 
