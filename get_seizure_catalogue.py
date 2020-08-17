@@ -96,27 +96,27 @@ class GetCatalogue:
         print('------------------------------------------------------')
         print('Creating seizure catalogue from:', self.main_path,'\n')
         
-        # # get save dir
-        # self.save_folder = os.path.join(self.main_path, 'szr_catalogue')
+        # get save dir
+        self.save_folder = os.path.join(self.main_path, 'szr_catalogue')
         
-        # # create save folder
-        # if os.path.exists(self.save_folder) is False:
-        #     os.mkdir(self.save_folder)
+        # create save folder
+        if os.path.exists(self.save_folder) is False:
+            os.mkdir(self.save_folder)
             
-        # # create csv file for each parameter
-        # for x in range(len(self.feature_labels)): # iterate through parameteres
-        #    # create empty dataframe
-        #    df = pd.DataFrame(data= np.zeros((0,len(self.columns))), columns = self.columns, dtype=np.int64)
-        #    df.to_csv(os.path.join(self.save_folder, self.feature_labels[x] +'.csv'), mode='a', header=True, index = False)     
+        # create csv file for each parameter
+        for x in range(len(self.feature_labels)): # iterate through parameteres
+            # create empty dataframe
+            df = pd.DataFrame(data= np.zeros((0,len(self.columns))), columns = self.columns, dtype=np.int64)
+            df.to_csv(os.path.join(self.save_folder, self.feature_labels[x] +'.csv'), mode='a', header=True, index = False)     
             
-        # # get subdirectories
-        # folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
+        # get subdirectories
+        folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
     
-        # for i in range(len(folders)): # iterate through folders
-        #     print('Analyzing', folders[i], '...' )
+        for i in range(len(folders)): # iterate through folders
+            print('Analyzing', folders[i], '...' )
             
-        #     # append seizure properties to dataframe from folder
-        #     self.folder_loop(folders[i])
+            # append seizure properties to dataframe from folder
+            self.folder_loop(folders[i])
         print('Seizure catalogue successfully created.')
         print('------------------------------------------------------')
         print('------------------------------------------------------')
