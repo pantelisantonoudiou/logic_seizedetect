@@ -73,7 +73,9 @@ class GetCatalogue:
         self.feature_labels = np.array(self.feature_labels)
         
         # define fixed columns
-        self.columns = ['exp_id', 'szr_start', 'szr_end', 'szr_percentile','x_sdevs', 'during_szr']
+        self.columns = ['exp_id', 'szr_start', 'szr_end'] # seizure retrieval index
+        self.szr_properties = ['szr_percentile','x_sdevs', 'during_szr'] # main seizure properties
+        self.columns.extend(self.szr_properties) # add seizure properties to fixed columns
         
         # add time bins to columns
         time_cols = [] # convert time bins to headers
@@ -168,7 +170,7 @@ class GetCatalogue:
      
                 if bounds_true.shape[0] > 0:
                     # get seizure and surround properties
-                    szrs = GetCatalogue.get_surround(x_data[:,ii], bounds_true, self.time_bins)
+                    szrs = GetCatalogue.get_surround(x_data[:,ii], bounds_true, self.time_bins, self.szr_properties)
                     
                     # insert seizure start and end
                     df['exp_id'] = [os.path.join(folder_path, filelist[i])] * bounds_true.shape[0]
@@ -182,15 +184,16 @@ class GetCatalogue:
                     df.to_csv(os.path.join(self.save_folder, self.feature_labels[ii] +'.csv'), mode='a', header=False, index = False)
     
     @staticmethod  
-    def get_surround(feature, idx, time_bins):
+    def get_surround(feature, idx, time_bins, szr_prop):
         """
-       GetCatalogue.get_surround(feature, idx, time_bins)
+       GetCatalogue.get_surround(feature, idx, time_bins, szr_prop)
     
         Parameters
         ----------
         feature : 1d ndarray
         idx : 2d ndarray, szr index
         time_bins : 2d ndarray, relative time to seizure to extract properties
+        szr_prop: list, with original seizure propeties
     
         Returns
         -------
@@ -202,12 +205,12 @@ class GetCatalogue:
         time_bins = time_bins.astype(np.int64) # convert to integer
         
         # create empty vectors to store before, after and within seizure features
-        fixed_bins = 3
-        szrs = np.zeros((idx.shape[0],len(time_bins) + fixed_bins))
+        szrs = np.zeros( (idx.shape[0], len(time_bins) + len(szr_prop) ) )
         
         for i in range(idx.shape[0]): # iterate over seizure number
             
-            szr_feature = np.mean(feature[idx[i,0]:idx[i,1]]) # during
+            # szr_feature = np.mean(feature[idx[i,0]:idx[i,1]]) # during
+            szr_feature = np.percentile(feature[idx[i,0]:idx[i,1]], 70) # during
             szrs[i,0] = percentileofscore(feature, szr_feature) # get percentile
             szrs[i,1] = (szr_feature-np.mean(feature))/np.std(feature) # get deviations from mean  
             szrs[i,2] = szr_feature
@@ -221,7 +224,8 @@ class GetCatalogue:
                     idx_end = idx[i,1] + time_bins[ii,1];
                 
                 # add feature mean
-                szrs[i,ii+fixed_bins] = np.mean(feature[idx_start : idx_end])
+                # szrs[i,ii+fixed_bins] = np.mean(feature[idx_start : idx_end])
+                szrs[i,ii+len(szr_prop)] = np.max(feature[idx_start : idx_end])
         return szrs
     
     
