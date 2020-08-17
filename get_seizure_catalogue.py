@@ -27,7 +27,7 @@ win = 5 # window duration
 # define parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,)
-cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # features.cross_corr
+cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,)
 ##### ----------------------------------------------------------------- #####
 
 def multi_folder(main_path):
@@ -70,12 +70,16 @@ def folder_loop(main_path, save_folder, folder_path):
 
     """
     
-    # get file list 
+    # get path
     ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
+    if os.path.exists(ver_path)== False:
+        print('path not found, skiiping..', main_path)
+        return False
+    
+     # get file list
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
-    if len(filelist) == 0:
-        return 0
+        
     
     # create feature labels
     feature_labels = [x.__name__ + '_1' for x in param_list]
