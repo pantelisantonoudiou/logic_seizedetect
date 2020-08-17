@@ -92,29 +92,34 @@ class GetCatalogue:
         main_path : Str, to parent dir
     
         """
+        print('------------------------------------------------------')
+        print('------------------------------------------------------')
+        print('Creating seizure catalogue from:', self.main_path,'\n')
         
-        # get save dir
-        self.save_folder = os.path.join(self.main_path, 'szr_catalogue')
+        # # get save dir
+        # self.save_folder = os.path.join(self.main_path, 'szr_catalogue')
         
-        # create save folder
-        if os.path.exists(self.save_folder) is False:
-            os.mkdir(self.save_folder)
+        # # create save folder
+        # if os.path.exists(self.save_folder) is False:
+        #     os.mkdir(self.save_folder)
             
-        # create csv file for each parameter
-        for x in range(len(self.feature_labels)): # iterate through parameteres
-           # create empty dataframe
-           df = pd.DataFrame(data= np.zeros((0,len(self.columns))), columns = self.columns, dtype=np.int64)
-           df.to_csv(os.path.join(self.save_folder, self.feature_labels[x] +'.csv'), mode='a', header=True, index = False)     
+        # # create csv file for each parameter
+        # for x in range(len(self.feature_labels)): # iterate through parameteres
+        #    # create empty dataframe
+        #    df = pd.DataFrame(data= np.zeros((0,len(self.columns))), columns = self.columns, dtype=np.int64)
+        #    df.to_csv(os.path.join(self.save_folder, self.feature_labels[x] +'.csv'), mode='a', header=True, index = False)     
             
-        # get subdirectories
-        folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
+        # # get subdirectories
+        # folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
     
-        for i in range(len(folders)): # iterate through folders
-            print('Analyzing', folders[i], '...' )
+        # for i in range(len(folders)): # iterate through folders
+        #     print('Analyzing', folders[i], '...' )
             
-            # append seizure properties to dataframe from folder
-            GetCatalogue.folder_loop(folders[i])
+        #     # append seizure properties to dataframe from folder
+        #     self.folder_loop(folders[i])
         print('Seizure catalogue successfully created.')
+        print('------------------------------------------------------')
+        print('------------------------------------------------------')
     
     
     def folder_loop(self, folder_path):
@@ -130,7 +135,7 @@ class GetCatalogue:
         # get path
         ver_path = os.path.join(self.main_path,folder_path, 'verified_predictions_pantelis')
         if os.path.exists(ver_path)== False:
-            print('path not found, skiiping..', self.main_path)
+            print('path not found, skipping:', self.main_path ,'.')
             return False
         
          # get file list
@@ -223,9 +228,7 @@ class GetCatalogue:
 if __name__ == '__main__':
     
     if len(sys.argv) == 2:
-        print('Creating seizure catalogue from', sys.argv[1])
         obj = GetCatalogue(sys.argv[1]) # instantiate and pass main path
-        breakpoint()
         obj.multi_folder() # get catalogue for multiple folders
     else:
         print('Please provide parent directory')
