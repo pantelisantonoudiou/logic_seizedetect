@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 # folder_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
-num_channels = [0,1]
+ch_list = [0,1]
 
 
 # define parameter list
@@ -47,12 +47,16 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     
     # get file list 
     ver_path = os.path.join(folder_path, 'verified_predictions_pantelis')
+    if os.path.exists(ver_path)== False:
+            print('path not found, skipping:', os.path.join(main_path, folder_path) ,'.')
+            return False
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
     # create feature labels
-    feature_labels = [x.__name__ + '_1' for x in param_list]; 
-    # feature_labels += [x.__name__ + '_2' for x in param_list]; 
+    feature_labels=[]
+    for n in ch_list:
+        feature_labels += [x.__name__ + '_'+ str(n) for x in param_list]
     feature_labels += [x.__name__  for x in cross_ch_param_list]
     feature_labels = np.array(feature_labels)
     
@@ -69,7 +73,7 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     for i in tqdm(range(0, len(filelist))): # loop through experiments
 
         # get data and true labels
-        data, y_true = get_data(folder_path,filelist[i], ch_num = num_channels, 
+        data, y_true = get_data(folder_path,filelist[i], ch_num = ch_list, 
                                 inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
         
         ## UNCOMMENT LINE BELOW TO : Clean and filter data
@@ -90,7 +94,13 @@ def folder_loop(folder_path, thresh_multiplier = 5):
         for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
 
             # get boolean index
-            y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            
+            # Percentile
+            y_pred = x_data[:,ii]> np.percentile(x_data[:,ii], thresh_multiplier)
+            
+            # SD
+            # y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            
             # y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
             # y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
             
@@ -164,7 +174,7 @@ def running_std_detection(signal, thresh_multiplier, window):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path, thresh_multiplier = 5)
+    multi_folder(main_path, thresh_multiplier = 99)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
 
         
