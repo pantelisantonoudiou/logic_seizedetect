@@ -135,9 +135,9 @@ class GetCatalogue:
         """
         
         # get path
-        ver_path = os.path.join(self.main_path,folder_path, 'verified_predictions_pantelis')
+        ver_path = os.path.join(self.main_path, folder_path, 'verified_predictions_pantelis')
         if os.path.exists(ver_path)== False:
-            print('path not found, skipping:', self.main_path ,'.')
+            print('path not found, skipping:', os.path.join(self.main_path, folder_path) ,'.')
             return False
         
          # get file list
@@ -209,8 +209,9 @@ class GetCatalogue:
         
         for i in range(idx.shape[0]): # iterate over seizure number
             
-            # szr_feature = np.mean(feature[idx[i,0]:idx[i,1]]) # during
-            szr_feature = np.percentile(feature[idx[i,0]:idx[i,1]], 70) # during
+            szr_feature = np.mean(feature[idx[i,0]:idx[i,1]]) # during
+            # szr_feature = np.percentile(feature[idx[i,0]:idx[i,1]], 70) # during
+            
             szrs[i,0] = percentileofscore(feature, szr_feature) # get percentile
             szrs[i,1] = (szr_feature-np.mean(feature))/np.std(feature) # get deviations from mean  
             szrs[i,2] = szr_feature
@@ -224,8 +225,8 @@ class GetCatalogue:
                     idx_end = idx[i,1] + time_bins[ii,1];
                 
                 # add feature mean
-                # szrs[i,ii+fixed_bins] = np.mean(feature[idx_start : idx_end])
-                szrs[i,ii+len(szr_prop)] = np.max(feature[idx_start : idx_end])
+                szrs[i,ii+len(szr_prop)] = np.mean(feature[idx_start : idx_end])
+                # szrs[i,ii+len(szr_prop)] = np.max(feature[idx_start : idx_end])
         return szrs
     
     
