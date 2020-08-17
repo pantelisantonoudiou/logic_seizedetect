@@ -74,6 +74,8 @@ def folder_loop(main_path, save_folder, folder_path):
     ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
+    if len(filelist) == 0:
+        return 0
     
     # create feature labels
     feature_labels = [x.__name__ + '_1' for x in param_list]
