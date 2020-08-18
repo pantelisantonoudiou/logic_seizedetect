@@ -5,15 +5,7 @@ Created on Tue Aug 18 15:12:09 2020
 @author: Pante
 """
 
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 24 08:29:12 2020
-
-@author: Pante
-"""
-
-import os, features, time
+import os, sys, features
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -39,7 +31,7 @@ class ThreshMetrics:
     # class constructor (data retrieval)
     def __init__(self, main_path):
         """
-        GetCatalogue(main_path)
+        ThreshMetrics(main_path)
 
         Parameters
         ----------
@@ -56,7 +48,6 @@ class ThreshMetrics:
             self.feature_labels += [x.__name__ + '_'+ str(n) for x in param_list]
         self.feature_labels += [x.__name__  for x in cross_ch_param_list]
         self.feature_labels = np.array(self.feature_labels)
-        
 
     def multi_folder(self):
         """
@@ -68,108 +59,110 @@ class ThreshMetrics:
         main_path : Str, to parent dir
     
         """
+        print('--------------------- START --------------------------')
         print('------------------------------------------------------')
-        print('------------------------------------------------------')
-        print('Creating seizure catalogue from:', self.main_path,'\n')
+        print('Getting metrics from :', self.main_path)
+        
         
         # get save dir
-        self.save_folder = os.path.join(self.main_path, 'optimum_threshold')
-        
-        # create save folder
-        if os.path.exists(self.save_folder) is False:
+        self.save_folder = os.path.join(self.main_path, 'optimum_threshold') 
+        if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
-            
-        # create csv file for each parameter
-        metrics = ['total', 'detected', 'detected_ratio','false_positives']
-        df = pd.DataFrame(data= np.zeros((len(metrics), len(self.feature_labels))), columns = self.feature_labels, dtype=np.int64)
-        df['metrics'] = metrics
-            
-        # get subdirectories
-        folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
-    
-        for i in range(len(folders)): # iterate through folders
-            print('Analyzing', folders[i], '...' )
-            
-            # append seizure properties to dataframe from folder
-            self.folder_loop(folders[i])
-            
-        df.to_csv(os.path.join(self.save_folder, 'threshold!!!!!' +'.csv'), mode='a', header=True, index = False)
-        print('Seizure catalogue successfully created.')
-        print('------------------------------------------------------')
-        print('------------------------------------------------------')
-
-
-def folder_loop(self, folder_path):
-    
-    # get file list 
-    ver_path = os.path.join(folder_path, 'verified_predictions_pantelis')
-    if os.path.exists(ver_path)== False: # error check
-            print('path not found, skipping:', os.path.join(self.main_path, folder_path) ,'.')
-            return False
-    filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
-    filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
-     
-    # create dataframe
-    columns = ['true_total', 'total_detected', 'total_exta']
-    df = pd.DataFrame(data= np.zeros((len(feature_labels),len(columns))), columns = columns, dtype=np.int64)
-    
-    # create seizure array
-    szrs = np.zeros((len(filelist),3,feature_labels.shape[0]))
-    
- 
-    for i in tqdm(range(0, len(filelist))): # loop through experiments
-
-        # get data and true labels
-        data, y_true = get_data(folder_path,filelist[i], ch_num = ch_list, 
-                                inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
+                
+        # get threhsolds
+        threshold_array = np.linspace(2,6,9);
         
-        # Get features and labels
-        x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
+        for ii in range(threshold_array.shape[0]): # iterate though thresholds
+            
+            self.threshold = threshold_array[ii] # set threshold
+            print('Seizure threshold set at :', self.threshold,'\n')
+        
+            # create csv file for each parameter
+            metrics = ['total', 'detected', 'detected_ratio','false_positives']
+            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(metrics))), columns = metrics, dtype=np.int64)
+            self.df.insert(loc = 0, column ='features', value = self.feature_labels)
+                
+            # get subdirectories
+            folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
+        
+            for i in range(len(folders)): # iterate through folders
+                print('Analyzing', folders[i], '...' )
+                
+                # append seizure properties to dataframe from folder
+                self.folder_loop(folders[i])
+            
+            # save dataframe to csv
+            file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold) +'.csv')
+            self.df.to_csv(file_name, header=True, index = False)
+            print('Seizure metrics saved to:', file_name)
+        
+        
+        print('----------------------- END --------------------------')
+        print('------------------------------------------------------')
 
-        # Normalize data
-        x_data = StandardScaler().fit_transform(x_data)
+
+    def folder_loop(self, folder_name):
+        """
+        folder_loop(self, folder_name)
+
+        Parameters
+        ----------
+        folder_name : Str, folder name
+
+        Returns
+        -------
+        bool
+        """
+        
+        # get file list 
+        ver_path = os.path.join(self.main_path, folder_name,'verified_predictions_pantelis')
+        if os.path.exists(ver_path)== False: # error check
+                print('path not found, skipping:', os.path.join(self.main_path, folder_name) ,'.')
+                return False
+        filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
+        filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
+     
+        for i in tqdm(range(0, len(filelist))): # iterate through experiments
     
-        for ii in range(len(feature_labels)): # iterate through parameteres  x_data.shape[1]
-
-            # SD
-            y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            # get data and true labels
+            data, y_true = get_data(os.path.join(self.main_path, folder_name),filelist[i], ch_num = ch_list, 
+                                    inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
             
-            # get number of seizures
-            bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # predicted
-            bounds_true = find_szr_idx(y_true, np.array([0,1])) # true
+            # Get features and labels
+            x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
+    
+            # Normalize data
+            x_data = StandardScaler().fit_transform(x_data)
             
-            # get true number of seizures
-            szrs[i,0,ii] = bounds_true.shape[0] 
+            # get bounds of true seizures
+            bounds_true = find_szr_idx(y_true, np.array([0,1]))
             
-            # plot figures
-            if bounds_pred.shape[0] > 0:
+            if bounds_true.shape[0] > 0:  # proceed if seizures are present  
             
-                # merge seizures close together
-                bounds_pred = merge_close(bounds_pred, merge_margin = 5)
-            
-                # find matching seizures
-                detected = match_szrs(bounds_true, bounds_pred, err_margin = 10)
-                
-                # get number of matching and extra seizures detected
-                szrs[i,1,ii] = detected # number of true seizures detected
-                szrs[i,2,ii] = bounds_pred.shape[0] - detected # number of extra seizures detected         
-                
-            # get total numbers
-            df.at[ii, 'true_total'] += szrs[i,0,ii]
-            df.at[ii, 'total_detected'] +=  szrs[i,1,ii]
-            df.at[ii, 'total_exta'] += szrs[i,2,ii]
-                  
-    return df, szrs
+                for ii in range(len(self.feature_labels)): # iterate through parameteres
+        
+                    # detect seizures bigger than threshold
+                    y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + self.threshold*np.std(x_data[:,ii]))
+                    
+                    # get bounds of predicted sezures
+                    bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
+                    bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
+                    detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
 
-
-
-
+                    # get total numbers
+                    self.df.at[ii, 'total'] += bounds_true.shape[0] 
+                    self.df.at[ii, 'detected'] += detected
+                    self.df.at[ii, 'detected_ratio'] += detected/bounds_true.shape[0]
+                    self.df.at[ii, 'false_positives'] += bounds_pred.shape[0] - detected
+        return True
 
 if __name__ == '__main__':
-
-    tic = time.time() # start timer       
-    multi_folder(main_path, thresh_multiplier = 3)
-    print('Time elapsed = ',time.time() - tic, 'seconds.')  
+    
+    if len(sys.argv) == 2:
+        obj = ThreshMetrics(sys.argv[1]) # instantiate and pass main path
+        obj.multi_folder() # get catalogue for multiple folders
+    else:
+        print('Please provide parent directory')
 
         
         
