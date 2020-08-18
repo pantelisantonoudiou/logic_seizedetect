@@ -48,6 +48,9 @@ class ThreshMetrics:
             self.feature_labels += [x.__name__ + '_'+ str(n) for x in param_list]
         self.feature_labels += [x.__name__  for x in cross_ch_param_list]
         self.feature_labels = np.array(self.feature_labels)
+        
+        # define metrics
+        self.metrics = ['total', 'detected', 'detected_ratio','false_positives']
 
     def multi_folder(self):
         """
@@ -72,14 +75,14 @@ class ThreshMetrics:
         # get threhsolds
         threshold_array = np.linspace(2,6,9);
         
-        for ii in range(threshold_array.shape[0]): # iterate though thresholds
+        for ii in range(2,threshold_array.shape[0]): # iterate though thresholds
             
             self.threshold = threshold_array[ii] # set threshold
             print('Seizure threshold set at :', self.threshold,'\n')
         
             # create csv file for each parameter
-            metrics = ['total', 'detected', 'detected_ratio','false_positives']
-            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(metrics))), columns = metrics, dtype=np.int64)
+            
+            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(self.metrics))), columns = self.metrics, dtype=np.int64)
             self.df.insert(loc = 0, column ='features', value = self.feature_labels)
                 
             # get subdirectories
@@ -91,6 +94,8 @@ class ThreshMetrics:
                 # append seizure properties to dataframe from folder
                 self.folder_loop(folders[i])
             
+            # get detected ratio
+            self.df['detected_ratio'] = self.df['detected']/self.df['total'] 
             # save dataframe to csv
             file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold).replace('.', '-') +'.csv')
             self.df.to_csv(file_name, header=True, index = False)
@@ -152,7 +157,6 @@ class ThreshMetrics:
                     # get total numbers
                     self.df.at[ii, 'total'] += bounds_true.shape[0] 
                     self.df.at[ii, 'detected'] += detected
-                    self.df.at[ii, 'detected_ratio'] += detected/bounds_true.shape[0]
                     self.df.at[ii, 'false_positives'] += bounds_pred.shape[0] - detected
         return True
 

@@ -137,6 +137,9 @@ def merge_close(bounds, merge_margin = 5):
 
     """
     
+    if bounds.shape[0] < 2: # if less than two seizures exit
+        return bounds
+    
     # copy of bounds
     bounds_out = np.copy(bounds) 
     
