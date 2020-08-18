@@ -96,10 +96,10 @@ def folder_loop(folder_path, thresh_multiplier = 5):
             # get boolean index
             
             # Percentile
-            y_pred = x_data[:,ii]> np.percentile(x_data[:,ii], thresh_multiplier)
+            # y_pred = x_data[:,ii]> np.percentile(x_data[:,ii], thresh_multiplier)
             
             # SD
-            # y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
+            y_pred = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
             
             # y_pred1 = x_data[:,ii]> (np.mean(x_data[:,ii]) + thresh_multiplier*np.std(x_data[:,ii]))
             # y_pred2 = x_data[:,ii+len(feature_labels)]> (np.mean(x_data[:,ii+len(feature_labels)]) + thresh_multiplier*np.std(x_data[:,ii+len(feature_labels)]))
@@ -174,7 +174,7 @@ def running_std_detection(signal, thresh_multiplier, window):
 if __name__ == '__main__':
 
     tic = time.time() # start timer       
-    multi_folder(main_path, thresh_multiplier = 99)
+    multi_folder(main_path, thresh_multiplier = 3)
     print('Time elapsed = ',time.time() - tic, 'seconds.')  
 
         
