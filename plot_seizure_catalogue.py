@@ -16,7 +16,7 @@ import seaborn as sns
 ch_dict = {'0': 'vhpc','1':'fc'}
 
 # set main path
-main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\szr_catalogue_mean'
+main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\szr_catalogue_mean_train'
 
 # get file list of seizure catalogues
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path)))
@@ -85,9 +85,9 @@ anot_heat.insert(loc = 0, column = 'feature', value = filelist)
 
 
 
-cols = ['szr_percentile'] # ['szr_percentile'] ['x_sdevs']
+cols = ['x_sdevs'] # ['szr_percentile'] ['x_sdevs']
 df = pd.read_csv(os.path.join(main_path, 'line_length_0.csv')) 
-idx = df[cols] < 4
+idx = df[cols] < 20
 box_data = pd.DataFrame(data = np.zeros((len(df),0)))
 for i in range(len(filelist)): 
     
@@ -96,12 +96,12 @@ for i in range(len(filelist)):
     
     # get name
     col_name = filelist[i][:-4]
-    if col_name[-1].isdigit() is True:
-        if int(col_name[-1]) == 0:
-            col_name = col_name[:-1] + ch_dict[col_name[-1]] # remap name
+    # if col_name[-1].isdigit() is True:
+        # if int(col_name[-1]) == 0:
+        #     col_name = col_name[:-1] + ch_dict[col_name[-1]] # remap name
     
-            # insert columns
-            box_data.insert(loc=0, column = col_name, value = df[cols]) # [idx]
+    # insert columns
+    box_data.insert(loc=0, column = col_name, value = df[cols][idx]) # [idx]
     
 # plot box plot
 plt.figure()

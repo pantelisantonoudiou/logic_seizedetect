@@ -13,6 +13,8 @@ from sklearn.metrics import log_loss,recall_score
 import matplotlib.pyplot as plt
 
 
+####### consider isolation forest for outlier detection!!!!!!
+
 def create_cost(bounds_true, bounds_pred):
     """
     create_cost(bounds_true, bounds_pred)
@@ -227,11 +229,11 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,)
 
 
-#   # get data and true labels
-# exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
-# # 071919_3514 071719_3560
-# data, y_true = get_data(exp_path, '071719_3560',ch_num = [0,1], 
-#                         inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
+  # get data and true labels
+exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
+# 071919_3514 071719_3560
+data, y_true = get_data(exp_path, '071919_3514',ch_num = [0,1], 
+                        inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 
 # get file list
@@ -242,7 +244,7 @@ filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only 
 filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
 
 
-for i in range(10):
+for i in range(1):
     # 071919_3514 071719_3560
     data, y_true = get_data(os.path.join(main_path, folder_path), filelist[i],ch_num = [0,1], 
                             inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)

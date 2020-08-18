@@ -26,7 +26,7 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
               features.get_envelope_max_diff,)
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # features.signal_covar_hilbert
 
-
+# NEEEED to arrange as get_seizurwe catalogue!!!!!!!!!!!!!!!!!!!!
 def multi_folder(main_path, thresh_multiplier = 5):
     
     # get subdirectories
@@ -49,7 +49,7 @@ def folder_loop(folder_path, thresh_multiplier = 5):
     ver_path = os.path.join(folder_path, 'verified_predictions_pantelis')
     if os.path.exists(ver_path)== False:
             print('path not found, skipping:', os.path.join(main_path, folder_path) ,'.')
-            return False
+            return False, False
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
