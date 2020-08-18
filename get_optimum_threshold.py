@@ -75,7 +75,7 @@ class ThreshMetrics:
         # get threhsolds
         threshold_array = np.linspace(2,6,9);
         
-        for ii in range(2,threshold_array.shape[0]): # iterate though thresholds
+        for ii in range(threshold_array.shape[0]): # iterate though thresholds
             
             self.threshold = threshold_array[ii] # set threshold
             print('Seizure threshold set at :', self.threshold,'\n')
