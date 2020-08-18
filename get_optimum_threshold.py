@@ -52,7 +52,7 @@ class ThreshMetrics:
     def multi_folder(self):
         """
         multi_folder(self)
-        Loop though folder paths and append seizure properties to csv
+        Loop though folder paths get seizure metrics and save to csv
     
         Parameters
         ----------
