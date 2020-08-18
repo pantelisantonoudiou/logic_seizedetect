@@ -92,7 +92,7 @@ class ThreshMetrics:
                 self.folder_loop(folders[i])
             
             # save dataframe to csv
-            file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold) +'.csv')
+            file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold).replace('.', '-') +'.csv')
             self.df.to_csv(file_name, header=True, index = False)
             print('Seizure metrics saved to:', file_name)
         
