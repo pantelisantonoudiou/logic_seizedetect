@@ -147,6 +147,20 @@ class FeatureSelection:
 
 # get pearson correlation value    
 def get_correlation(x_data,y_true):
+    """
+    get_correlation(x_data,y_true)
+
+    Parameters
+    ----------
+    x_data : TYPE
+    y_true : TYPE
+
+    Returns
+    -------
+    r2_vals : 1D ndarray
+    p_vals : 1D ndarray
+
+    """
 
     # create arrays for storage
     r2_vals = np.zeros(x_data.shape[1]) # pearson r
@@ -155,18 +169,32 @@ def get_correlation(x_data,y_true):
     for i in range(len(r2_vals)):
         r2_vals[i] = pearsonr(x_data[:,i], y_true)[0]
         p_vals[i] = pearsonr(x_data[:,i], y_true)[1]
+        
     return r2_vals, p_vals
 
+
+# get f values
 def get_fvalues(x_data,y_true):
     
     # create arrays for storage
     f_vals = np.zeros(x_data.shape[1]) # pearson r
     
-    for i in range(len(r2_vals)):    
+    for i in range(len(f_vals)):    
         
         f,p = f_classif(x_data[:,i], y_true)
-        f_vals = 
+        f_vals[i] = f
         
+    return f_vals
+        
+  # Recursive feature elimination
+from sklearn.linear_model import LogisticRegression
+rfe = RFE(estimator=LogisticRegression(), n_features_to_select=1)
+rfe.fit(x_train, y_train)
+plt.plot(labels, 1/rfe.ranking_, label = 'rfe logistic regression' )      
+
+
+
+
 
 if __name__ == '__main__':
     
