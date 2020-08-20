@@ -15,6 +15,7 @@ from build_feature_data import get_data, get_features_allch
 from scipy.stats import pearsonr
 from sklearn.feature_selection import f_classif, RFE
 from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
 
 ### -------------SETTINGS --------------###
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
