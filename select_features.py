@@ -87,8 +87,7 @@ class FeatureSelection:
             
             # append seizure properties to dataframe from folder
             self.folder_loop(folders[i])
-        
-        print('Feature metrics saved to:', file_name)    
+          
         print('----------------------- END --------------------------')
 
 
