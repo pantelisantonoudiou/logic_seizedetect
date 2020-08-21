@@ -5,7 +5,6 @@ Created on Wed Aug 19 15:03:00 2020
 @author: Pante
 """
 
-
 import os, sys, features
 import numpy as np
 import pandas as pd
@@ -13,8 +12,8 @@ from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from build_feature_data import get_data, get_features_allch
 from scipy.stats import pearsonr
-from sklearn.feature_selection import f_classif, RFE
-from sklearn.ensemble import RandomForestClassfier
+from sklearn.feature_selection import f_classif
+from sklearn.ensemble import RandomForestClassifier
 
 ### -------------SETTINGS --------------###
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
@@ -53,12 +52,12 @@ class FeatureSelection:
         self.feature_labels = np.array(self.feature_labels)
         
         # define metrics
-        self.metrics = ['pearson_corr', 'anova_f', 'rfe','permutation']
+        self.metrics = [pearson_corr, anova_f, random_forest]
 
     def multi_folder(self):
         """
         multi_folder(self)
-        Loop though folder paths get seizure metrics and save to csv
+        Loop though folder paths get feature metrics and save to csv
     
         Parameters
         ----------
@@ -66,42 +65,31 @@ class FeatureSelection:
     
         """
         print('--------------------- START --------------------------')
-        print('------------------------------------------------------')
-        print('Getting metrics from :', self.main_path)
-        
+        print('Getting feature metrics from :', self.main_path)
         
         # get save dir
-        self.save_folder = os.path.join(self.main_path, 'optimum_threshold') 
+        self.save_folder = os.path.join(self.main_path, 'feature_selection') 
         if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
                 
-        for ii in range(len(self.metrics)): # iterate though thresholds
-            
-            print('Seizure threshold set at :', self.threshold,'\n')
-        
-            # create csv file for each parameter
-            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(self.metrics))), columns = self.metrics, dtype=np.int64)
-            self.df.insert(loc = 0, column ='features', value = self.feature_labels)
-                
+        # create csv file for each metric
+        for ii in range(len(self.feature_labels)): # iterate through parameteres
+            # create empty dataframe
+            df = pd.DataFrame(data= np.zeros((0, len(self.feature_labels)), columns = self.feature_labels, dtype=np.int64))
+            df.insert(loc = 0, column = 'exp_id', value = '')
+            df.to_csv(os.path.join(self.save_folder, self.metrics[ii].__name__ +'.csv'), mode='a', header=True, index = False)     
+
             # get subdirectories
             folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
         
-            for i in range(len(folders)): # iterate through folders
-                print('Analyzing', folders[i], '...' )
-                
-                # append seizure properties to dataframe from folder
-                self.folder_loop(folders[i])
+        for i in range(len(folders)): # iterate through folders
+            print('Analyzing', folders[i], '...' )
             
-            # get detected ratio
-            self.df['detected_ratio'] = self.df['detected']/self.df['total'] 
-            # save dataframe to csv
-            file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold).replace('.', '-') +'.csv')
-            self.df.to_csv(file_name, header=True, index = False)
-            print('Seizure metrics saved to:', file_name)
+            # append seizure properties to dataframe from folder
+            self.folder_loop(folders[i])
         
-        
+        print('Feature metrics saved to:', file_name)    
         print('----------------------- END --------------------------')
-        print('------------------------------------------------------')
 
 
     def folder_loop(self, folder_name):
@@ -130,17 +118,25 @@ class FeatureSelection:
             # get data and true labels
             data, y_true = get_data(os.path.join(self.main_path, folder_name),filelist[i], ch_num = ch_list, 
                                     inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
-            
-            # Get features and labels
-            x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
-    
-            # Normalize data
-            x_data = StandardScaler().fit_transform(x_data)
-            
-
+            if np.sum(y_true)>3:
+                # Get features and labels
+                x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
+                x_data = StandardScaler().fit_transform(x_data) # Normalize data
+                
+                for ii in range(len(self.metrics)):
+                    # get metric for features
+                    metric = self.metrics[ii](x_data, y_true)
+                    
+                    # create dateframe with metric
+                    df = pd.DataFrame(data = metric, columns = self.feature_labels, dtype=np.int64)
+                    df.insert(loc = 0, column = 'exp_id', value = filelist[i])
+                    
+                    # save to csv
+                    df.to_csv(os.path.join(self.save_folder, self.metrics[ii].__name__ +'.csv'), mode='a', header=False, index = False)
         return True
     
 
+### ----------------- GET METRICS TO SELECT FEATURES  --------------------------- ###
 # get pearson correlation value    
 def pearson_corr(x_data, y_true):
     """
@@ -167,6 +163,7 @@ def pearson_corr(x_data, y_true):
         
     return r2_vals
 
+# get anova f values
 def anova_f(x_data, y_true):
     """
     anova_f(x_data, y_true)
@@ -178,7 +175,7 @@ def anova_f(x_data, y_true):
 
     Returns
     -------
-    f_vals : 1D ndarray, pearson correlation coefficients for each feature
+    f_vals : 1D ndarray, anova f values
     """
     
     f_vals, p = f_classif(x_data, y_true)
@@ -203,16 +200,16 @@ def random_forest(x_data, y_true):
     model.fit(x_data, y_true)
     return model.feature_importances_ 
 
+### --------------------------------------------------------------------- ###
 
 
-
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     if len(sys.argv) == 2:
-#         obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path
-#         obj.multi_folder() # get catalogue for multiple folders
-#     else:
-#         print('Please provide parent directory')
+    if len(sys.argv) == 2:
+        obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path
+        obj.multi_folder() # get catalogue for multiple folders
+    else:
+        print('Please provide parent directory')
 
         
         
