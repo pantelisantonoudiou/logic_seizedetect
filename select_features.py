@@ -16,7 +16,7 @@ from sklearn.feature_selection import f_classif
 from sklearn.ensemble import RandomForestClassifier
 
 ### -------------SETTINGS --------------###
-# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+# parent_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
 # define parameter list
@@ -73,9 +73,9 @@ class FeatureSelection:
             os.mkdir(self.save_folder)
                 
         # create csv file for each metric
-        for ii in range(len(self.feature_labels)): # iterate through parameteres
+        for ii in range(len(self.metrics)): # iterate through parameteres
             # create empty dataframe
-            df = pd.DataFrame(data= np.zeros((0, len(self.feature_labels)), columns = self.feature_labels, dtype=np.int64))
+            df = pd.DataFrame(data = np.zeros((0, len(self.feature_labels))), columns = self.feature_labels)
             df.insert(loc = 0, column = 'exp_id', value = '')
             df.to_csv(os.path.join(self.save_folder, self.metrics[ii].__name__ +'.csv'), mode='a', header=True, index = False)     
 
@@ -127,7 +127,7 @@ class FeatureSelection:
                     metric = self.metrics[ii](x_data, y_true)
                     
                     # create dateframe with metric
-                    df = pd.DataFrame(data = metric, columns = self.feature_labels, dtype=np.int64)
+                    df = pd.DataFrame(data = np.array(metric).reshape(1,-1), columns = self.feature_labels)
                     df.insert(loc = 0, column = 'exp_id', value = filelist[i])
                     
                     # save to csv
@@ -205,11 +205,10 @@ def random_forest(x_data, y_true):
 if __name__ == '__main__':
     
     if len(sys.argv) == 2:
-        obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path
+        obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path 
         obj.multi_folder() # get catalogue for multiple folders
     else:
         print('Please provide parent directory')
-
         
         
         
