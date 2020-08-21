@@ -14,9 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from build_feature_data import get_data, get_features_allch
 from scipy.stats import pearsonr
 from sklearn.feature_selection import f_classif, RFE
-from sklearn.inspection import permutation_importance
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassfier
 
 ### -------------SETTINGS --------------###
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
@@ -55,7 +53,7 @@ class FeatureSelection:
         self.feature_labels = np.array(self.feature_labels)
         
         # define metrics
-        self.metrics = ['Pearson Corr.', 'ANOVA', 'RFE','Permutation']
+        self.metrics = ['pearson_corr', 'anova_f', 'rfe','permutation']
 
     def multi_folder(self):
         """
@@ -77,15 +75,11 @@ class FeatureSelection:
         if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
                 
-
-        
         for ii in range(len(self.metrics)): # iterate though thresholds
             
-            self.threshold = threshold_array[ii] # set threshold
             print('Seizure threshold set at :', self.threshold,'\n')
         
             # create csv file for each parameter
-            
             self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(self.metrics))), columns = self.metrics, dtype=np.int64)
             self.df.insert(loc = 0, column ='features', value = self.feature_labels)
                 
@@ -148,9 +142,9 @@ class FeatureSelection:
     
 
 # get pearson correlation value    
-def get_correlation(x_data, y_true):
+def pearson_corr(x_data, y_true):
     """
-    get_correlation(x_data, y_true)
+    pearson_corr(x_data, y_true)
 
     Parameters
     ----------
@@ -171,13 +165,11 @@ def get_correlation(x_data, y_true):
     for i in range(x_data.shape[1]):
         (r2_vals[i], p_vals[i])  = pearsonr(x_data[:,i], y_true)
         
-    return r2_vals, p_vals
+    return r2_vals
 
-
-# get ANOVA f values
-def get_fvalues(x_data, y_true):
+def anova_f(x_data, y_true):
     """
-    get_fvalues(x_data, y_true)
+    anova_f(x_data, y_true)
 
     Parameters
     ----------
@@ -186,20 +178,16 @@ def get_fvalues(x_data, y_true):
 
     Returns
     -------
-    f_vals : 1D ndarray, ANOVA f-values for each feature
+    f_vals : 1D ndarray, pearson correlation coefficients for each feature
     """
     
-    # create arrays for storage
-    f_vals = np.zeros(x_data.shape[1]) # anova f-values
-    
-    for i in range(x_data.shape[1]):     
-        (f_vals[i], p) = f_classif(x_data[:,i], y_true) # perform anova 
+    f_vals, p = f_classif(x_data, y_true)
     return f_vals
    
-# get Recursive feature elimination values
-def get_RFE_ranks(x_data, y_true):
+# get Random forest importances
+def random_forest(x_data, y_true):
     """
-    get_RFE_ranks(x_data, y_true)
+    random_forest(x_data, y_true)
 
     Parameters
     ----------
@@ -208,54 +196,23 @@ def get_RFE_ranks(x_data, y_true):
 
     Returns
     -------
-    rfe_ranks : 1D ndarray, ranks of features -> 1-0 (highest-lowest)
+    feature_importances_ : 1D ndarray, ranks of features -> 1-0 (highest-lowest)
     """
     
-     # create arrays for storage
-    rfe_ranks = np.zeros(x_data.shape[1]) # anova f-values
+    model = RandomForestClassifier(n_estimators = 100)
+    model.fit(x_data, y_true)
+    return model.feature_importances_ 
+
+
+
+
+# if __name__ == '__main__':
     
-    # Recursive feature elimination
-    for i in range(x_data.shape[1]):  
-        # init object
-        rfe = RFE(estimator=LogisticRegression(), n_features_to_select=1)
-        rfe.fit(x_data[:,i], y_true) # fit data
-        rfe_ranks[i] =  1/rfe.ranking_ # get ranks
-
-# get Permutation importances
-def get_permutation_importances(x_data, y_true):
-    """
-    get_permutation_importances(x_data, y_true)
-
-    Parameters
-    ----------
-    x_data :  2D ndarray (rows = segments, columns = features)
-    y_true : 1D ndarray, bool, ground truth labels
-
-    Returns
-    -------
-    rfe_ranks : 1D ndarray, ranks of features -> 1-0 (highest-lowest)
-    """
-    
-     # create arrays for storage
-    importances = np.zeros(x_data.shape[1]) # anova f-values
-    
-    # Recursive feature elimination
-    for i in range(x_data.shape[1]):  
-        
-        model = KNeighborsClassifier() # init model
-        model.fit(x_data[:,i], y_true) # fit data
-        results = permutation_importance(model, # permutation
-                                         x_data[:,i], y_true, scoring='accuracy')
-        importances[i] =  results.importances_mean # get importances
-
-
-if __name__ == '__main__':
-    
-    if len(sys.argv) == 2:
-        obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path
-        obj.multi_folder() # get catalogue for multiple folders
-    else:
-        print('Please provide parent directory')
+#     if len(sys.argv) == 2:
+#         obj = FeatureSelection(sys.argv[1]) # instantiate and pass main path
+#         obj.multi_folder() # get catalogue for multiple folders
+#     else:
+#         print('Please provide parent directory')
 
         
         

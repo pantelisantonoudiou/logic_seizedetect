@@ -232,7 +232,7 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
   # get data and true labels
 exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
 # 071919_3514 071719_3560
-data, y_true = get_data(exp_path, '071919_3514',ch_num = [0,1], 
+data, y_true = get_data(exp_path, '071919_3514a',ch_num = [0,1], 
                         inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 
@@ -243,6 +243,9 @@ ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
 filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
 
+
+# data, y_true = get_data(r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640, '071819_3553a',ch_num = [0,1], 
+#                         inner_path={'data_path':'reorganized_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 for i in range(1):
     # 071919_3514 071719_3560
