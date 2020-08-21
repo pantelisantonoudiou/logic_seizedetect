@@ -16,6 +16,7 @@ from scipy.stats import pearsonr
 from sklearn.feature_selection import f_classif, RFE
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 
 ### -------------SETTINGS --------------###
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
@@ -147,19 +148,19 @@ class FeatureSelection:
     
 
 # get pearson correlation value    
-def get_correlation(x_data,y_true):
+def get_correlation(x_data, y_true):
     """
-    get_correlation(x_data,y_true)
+    get_correlation(x_data, y_true)
 
     Parameters
     ----------
-    x_data : TYPE
-    y_true : TYPE
+    x_data :  2D ndarray (rows = segments, columns = features)
+    y_true : 1D ndarray, bool, ground truth labels
 
     Returns
     -------
-    r2_vals : 1D ndarray
-    p_vals : 1D ndarray
+    r2_vals : 1D ndarray, pearson correlation coefficients for each feature
+    p_vals : 1D ndarray, p-value for each feature
 
     """
 
@@ -167,34 +168,85 @@ def get_correlation(x_data,y_true):
     r2_vals = np.zeros(x_data.shape[1]) # pearson r
     p_vals = np.zeros(x_data.shape[1]) # p-value
     
-    for i in range(len(r2_vals)):
-        r2_vals[i] = pearsonr(x_data[:,i], y_true)[0]
-        p_vals[i] = pearsonr(x_data[:,i], y_true)[1]
+    for i in range(x_data.shape[1]):
+        (r2_vals[i], p_vals[i])  = pearsonr(x_data[:,i], y_true)
         
     return r2_vals, p_vals
 
 
-# get f values
-def get_fvalues(x_data,y_true):
+# get ANOVA f values
+def get_fvalues(x_data, y_true):
+    """
+    get_fvalues(x_data, y_true)
+
+    Parameters
+    ----------
+    x_data :  2D ndarray (rows = segments, columns = features)
+    y_true : 1D ndarray, bool, ground truth labels
+
+    Returns
+    -------
+    f_vals : 1D ndarray, ANOVA f-values for each feature
+    """
     
     # create arrays for storage
-    f_vals = np.zeros(x_data.shape[1]) # pearson r
+    f_vals = np.zeros(x_data.shape[1]) # anova f-values
     
-    for i in range(len(f_vals)):    
-        
-        f,p = f_classif(x_data[:,i], y_true)
-        f_vals[i] = f
-        
+    for i in range(x_data.shape[1]):     
+        (f_vals[i], p) = f_classif(x_data[:,i], y_true) # perform anova 
     return f_vals
+   
+# get Recursive feature elimination values
+def get_RFE_ranks(x_data, y_true):
+    """
+    get_RFE_ranks(x_data, y_true)
+
+    Parameters
+    ----------
+    x_data :  2D ndarray (rows = segments, columns = features)
+    y_true : 1D ndarray, bool, ground truth labels
+
+    Returns
+    -------
+    rfe_ranks : 1D ndarray, ranks of features -> 1-0 (highest-lowest)
+    """
+    
+     # create arrays for storage
+    rfe_ranks = np.zeros(x_data.shape[1]) # anova f-values
+    
+    # Recursive feature elimination
+    for i in range(x_data.shape[1]):  
+        # init object
+        rfe = RFE(estimator=LogisticRegression(), n_features_to_select=1)
+        rfe.fit(x_data[:,i], y_true) # fit data
+        rfe_ranks[i] =  1/rfe.ranking_ # get ranks
+
+# get Permutation importances
+def get_permutation_importances(x_data, y_true):
+    """
+    get_permutation_importances(x_data, y_true)
+
+    Parameters
+    ----------
+    x_data :  2D ndarray (rows = segments, columns = features)
+    y_true : 1D ndarray, bool, ground truth labels
+
+    Returns
+    -------
+    rfe_ranks : 1D ndarray, ranks of features -> 1-0 (highest-lowest)
+    """
+    
+     # create arrays for storage
+    importances = np.zeros(x_data.shape[1]) # anova f-values
+    
+    # Recursive feature elimination
+    for i in range(x_data.shape[1]):  
         
-  # Recursive feature elimination
-from sklearn.linear_model import LogisticRegression
-rfe = RFE(estimator=LogisticRegression(), n_features_to_select=1)
-rfe.fit(x_train, y_train)
-plt.plot(labels, 1/rfe.ranking_, label = 'rfe logistic regression' )      
-
-
-
+        model = KNeighborsClassifier() # init model
+        model.fit(x_data[:,i], y_true) # fit data
+        results = permutation_importance(model, # permutation
+                                         x_data[:,i], y_true, scoring='accuracy')
+        importances[i] =  results.importances_mean # get importances
 
 
 if __name__ == '__main__':
