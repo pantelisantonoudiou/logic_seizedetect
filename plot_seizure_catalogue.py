@@ -122,74 +122,74 @@ import seaborn as sns
 ##### ------------------ OPTIMUM THRESHOLD ----------------------------- #####   
     
     
-# # get subdirectories
-# main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\optimum_threshold'
-# filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path))) # get only files with predictions
+# get subdirectories
+main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\optimum_threshold'
+filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path))) # get only files with predictions
 
-# # get prototype dataframe
-# df = pd.read_csv(os.path.join(main_path,filelist[0]))
+# get prototype dataframe
+df = pd.read_csv(os.path.join(main_path,filelist[0]))
 
-# # get rehsolds
-# thresh_array = np.zeros(len(filelist))
-# for i in range(len(filelist)):
+# get trehsolds
+thresh_array = np.zeros(len(filelist))
+for i in range(len(filelist)):
     
-#     # isolate threshold level digits
-#     threshold = filelist[i].split('_')[1][:-4].split('-')
-#     thresh_array[i] = int(threshold[0]) + int(threshold[1])/10 # reconstruct reholds
+    # isolate threshold level digits
+    threshold = filelist[i].split('_')[1][:-4].split('-')
+    thresh_array[i] = int(threshold[0]) + int(threshold[1])/10 # reconstruct reholds
 
-# # init arrays
-# max_detected = np.zeros(len(df))
-# min_falsepos = np.zeros(len(df))
-# optimum_threshold = np.zeros(len(df))
-# for ii in range(len(df)): 
+# init arrays
+max_detected = np.zeros(len(df))
+min_falsepos = np.zeros(len(df))
+optimum_threshold = np.zeros(len(df))
+for ii in range(len(df)): 
     
-#     # init empty arrays
-#     detected_ratio = np.zeros(len(filelist))
-#     false_positives = np.zeros(len(filelist))
+    # init empty arrays
+    detected_ratio = np.zeros(len(filelist))
+    false_positives = np.zeros(len(filelist))
     
-#     for i in range(len(filelist)):
+    for i in range(len(filelist)):
         
-#         # load dataframe
-#         df = pd.read_csv(os.path.join(main_path,filelist[i]))
+        # load dataframe
+        df = pd.read_csv(os.path.join(main_path,filelist[i]))
         
-#         # get detected ratio and false positives for specific feature
-#         detected_ratio[i] = df['detected_ratio'][df['features'] == df['features'][ii]]
-#         false_positives[i] = df['false_positives'][df['features'] == df['features'][ii]]
+        # get detected ratio and false positives for specific feature
+        detected_ratio[i] = df['detected_ratio'][df['features'] == df['features'][ii]]
+        false_positives[i] = df['false_positives'][df['features'] == df['features'][ii]]
     
-#     detected_ratio *= 100 # convert to percentage
+    detected_ratio *= 100 # convert to percentage
     
-#     #### ------ 1 get max value ------------------- ####
-#     # max_val = np.max(detected_ratio)
-#     # max_idx = np.where(detected_ratio == max_val)[0]
+    #### ------ 1 get max value ------------------- ####
+    # max_val = np.max(detected_ratio)
+    # max_idx = np.where(detected_ratio == max_val)[0]
     
-#     # alpha = 0.98
-#     # if max_val > alpha:
-#     #     max_idx = np.where(detected_ratio>alpha)[0]
+    # alpha = 0.98
+    # if max_val > alpha:
+    #     max_idx = np.where(detected_ratio>alpha)[0]
         
-#     ### ------ 2 or get minimum cost --------------- ####
-#     cost = np.log(false_positives) - detected_ratio
-#     max_idx = [np.argmin(cost)]
+    ### ------ 2 or get minimum cost --------------- ####
+    cost = np.log(false_positives) - detected_ratio
+    max_idx = [np.argmin(cost)]
     
-#     # get minimum false positives from max detected
-#     idx = np.argmin(false_positives[max_idx])
-#     idx = max_idx[idx] # remap to original index
+    # get minimum false positives from max detected
+    idx = np.argmin(false_positives[max_idx])
+    idx = max_idx[idx] # remap to original index
     
-#     max_detected[ii] = detected_ratio[idx]
-#     min_falsepos[ii] = false_positives[idx]
-#     optimum_threshold[ii] = thresh_array[idx]
+    max_detected[ii] = detected_ratio[idx]
+    min_falsepos[ii] = false_positives[idx]
+    optimum_threshold[ii] = thresh_array[idx]
 
-# fig, (ax1,ax2,ax3) = plt.subplots(3, 1, sharex=True)   
-# ax1.plot(df['features'], max_detected ,'-o')
-# ax1.set_ylabel('% seizures detected')
-# ax1.set_xticklabels(df['features'], rotation= 90)
+fig, (ax1,ax2,ax3) = plt.subplots(3, 1, sharex=True)   
+ax1.plot(df['features'], max_detected ,'-o')
+ax1.set_ylabel('% seizures detected')
+ax1.set_xticklabels(df['features'], rotation= 90)
 
-# ax2.plot(df['features'], min_falsepos ,'-o', color='orange')
-# ax2.set_ylabel('False positives')
-# ax2.set_xticklabels(df['features'], rotation= 90)
+ax2.plot(df['features'], min_falsepos ,'-o', color='orange')
+ax2.set_ylabel('False positives')
+ax2.set_xticklabels(df['features'], rotation= 90)
 
-# ax3.plot(df['features'], optimum_threshold ,'-o', color = 'green')
-# ax3.set_ylabel('Threshold (x SD)')
-# ax3.set_xticklabels(df['features'], rotation= 90)
+ax3.plot(df['features'], optimum_threshold ,'-o', color = 'green')
+ax3.set_ylabel('Threshold (x SD)')
+ax3.set_xticklabels(df['features'], rotation= 90)
     
         
 ### ------------------------------------------------------------------- ###
@@ -203,6 +203,8 @@ main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\feature_selection'
 # get file list of seizure catalogues
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path)))
 
+list = 
+
 for i in range(len(filelist)):
     
     # read dataframe
@@ -210,6 +212,7 @@ for i in range(len(filelist)):
     
     # select data
     data = df.drop(['exp_id'],axis=1)
+    print(data.columns[data.median()>np.mean(data.median())])
     
     #plot
     plt.figure()
