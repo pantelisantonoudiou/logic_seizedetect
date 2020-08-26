@@ -120,8 +120,7 @@ import seaborn as sns
     
 
 ##### ------------------ OPTIMUM THRESHOLD ----------------------------- #####   
-    
-    
+      
 # get subdirectories
 main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\optimum_threshold'
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path))) # get only files with predictions
@@ -141,6 +140,10 @@ for i in range(len(filelist)):
 max_detected = np.zeros(len(df))
 min_falsepos = np.zeros(len(df))
 optimum_threshold = np.zeros(len(df))
+selected_cost = np.zeros(len(df))
+
+# create dataframe to store ranks
+df_rank = pd.DataFrame(data = np.zeros((4, len(df))), columns = df['features'])
 for ii in range(len(df)): 
     
     # init empty arrays
@@ -177,6 +180,11 @@ for ii in range(len(df)):
     max_detected[ii] = detected_ratio[idx]
     min_falsepos[ii] = false_positives[idx]
     optimum_threshold[ii] = thresh_array[idx]
+    selected_cost[ii] = cost[idx]
+    
+# select data
+print(list(df['features'][selected_cost < np.median(selected_cost)]))
+df_rank.iloc[0] = 1/selected_cost
 
 fig, (ax1,ax2,ax3) = plt.subplots(3, 1, sharex=True)   
 ax1.plot(df['features'], max_detected ,'-o')
@@ -203,7 +211,7 @@ main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\feature_selection'
 # get file list of seizure catalogues
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path)))
 
-list = 
+# list = 
 
 for i in range(len(filelist)):
     
@@ -212,7 +220,8 @@ for i in range(len(filelist)):
     
     # select data
     data = df.drop(['exp_id'],axis=1)
-    print(data.columns[data.median()>np.mean(data.median())])
+    print(list(data.columns[data.median()>np.mean(data.median())]))
+    df_rank.iloc[i+1] = np.abs(data.median())
     
     #plot
     plt.figure()
@@ -222,8 +231,16 @@ for i in range(len(filelist)):
     plt.title(filelist[i])    
     
 ### ------------------------------------------------------------------- ###
-    
-    
+
+
+df_rank = df_rank.rank(axis=1)
+cols = np.array(df.columns[1:])
+idx = np.argsort(df_rank.mean())
+fig = plt.figure(1)  
+ax = fig.add_subplot(111) 
+xticklabels = list(cols[idx])
+plt.plot(xticklabels, np.array(df_rank.mean())[idx])
+ax.set_xticklabels(ax.get_xticklabels(),rotation=90) 
     
     
     
