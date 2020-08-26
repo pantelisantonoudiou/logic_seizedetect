@@ -232,7 +232,7 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
   # get data and true labels
 exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
 # 071919_3514 071719_3560
-data, y_true = get_data(exp_path, '071919_3514a',ch_num = [0,1], 
+data, y_true = get_data(exp_path, '071919_3514',ch_num = [0,1], 
                         inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 

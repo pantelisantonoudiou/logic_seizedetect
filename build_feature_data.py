@@ -188,7 +188,7 @@ if __name__ == '__main__':
     cross_ch_param_list = (features.cross_corr,)
     
     # Get data
-    main_path = r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640'
+    main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3514_3553_3639_3640'#r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640'
     #r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3514_3553_3639_3640' # 3514_3553_3639_3640 3642_3641_3560_3514
     exp_path = '071919_3553b'#'071919_3553b'-seizures, 072519_3640a, 072719_3553a, 072819_3553a
     

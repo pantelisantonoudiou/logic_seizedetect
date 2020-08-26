@@ -144,6 +144,7 @@ selected_cost = np.zeros(len(df))
 
 # create dataframe to store ranks
 df_rank = pd.DataFrame(data = np.zeros((4, len(df))), columns = df['features'])
+df_logic = pd.DataFrame(data = np.zeros((4, len(df))), columns = df['features'])
 for ii in range(len(df)): 
     
     # init empty arrays
@@ -185,6 +186,7 @@ for ii in range(len(df)):
 # select data
 print(list(df['features'][selected_cost < np.median(selected_cost)]))
 df_rank.iloc[0] = 1/selected_cost
+df_logic.iloc[0] = selected_cost < np.median(selected_cost)
 
 fig, (ax1,ax2,ax3) = plt.subplots(3, 1, sharex=True)   
 ax1.plot(df['features'], max_detected ,'-o')
@@ -211,8 +213,6 @@ main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\feature_selection'
 # get file list of seizure catalogues
 filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path)))
 
-# list = 
-
 for i in range(len(filelist)):
     
     # read dataframe
@@ -222,6 +222,7 @@ for i in range(len(filelist)):
     data = df.drop(['exp_id'],axis=1)
     print(list(data.columns[data.median()>np.mean(data.median())]))
     df_rank.iloc[i+1] = np.abs(data.median())
+    df_logic.iloc[i+1] = data.median()>np.mean(data.median())
     
     #plot
     plt.figure()
@@ -236,11 +237,12 @@ for i in range(len(filelist)):
 df_rank = df_rank.rank(axis=1)
 cols = np.array(df.columns[1:])
 idx = np.argsort(df_rank.mean())
-fig = plt.figure(1)  
-ax = fig.add_subplot(111) 
+f2 = plt.figure()  
+ax = f2.add_subplot(111) 
 xticklabels = list(cols[idx])
-plt.plot(xticklabels, np.array(df_rank.mean())[idx])
-ax.set_xticklabels(ax.get_xticklabels(),rotation=90) 
+ranks = np.array(df_rank.mean())
+plt.plot(xticklabels, ranks[idx])
+ax.set_xticklabels(xticklabels,rotation=90) 
     
     
     
