@@ -50,24 +50,27 @@ def get_cost(y_true, y_pred):
     
     return cost
 
-def test_model(x_data, y_true, optimum_threshold):
-    
+def test_model(x_data, y_true, optimum_threshold, repeats):
     
     
     # get predictions for each feature
-    y_pred = x_data > (np.std(x_data, axis=0) * optimum_threshold)
+    y_pred_array = x_data > (np.std(x_data, axis=0) * optimum_threshold)
     
     # calculate initial cost
     current_cost = get_cost(y_true, np.mean(y_pred, axis=1) > 0.5)
     
-    # generate random sequence
-    idx = np.random.permutation(x_data.shape[1])
     
-    for i in range(parameter.shape[0]):
-        y_pred_temp = 
+    for ii in range(repeats):
         
-        cost = get_cost(y_true, np.mean(np.delete(y_pred, idx, 1), axis=1) > 0.5 )
-        if cost > current_cost:
+        for i in range(x_data.shape[1]):
+            
+            idx = np.random.randint(0,y_pred_temp.shape[1]) # get random index
+            y_pred_temp = np.delete(y_pred, idx, 1) # drop idx from prediction array
+            y_pred = np.mean(, axis=1) > 0.5        # get predecitions
+            cost = get_cost(y_true,  y_pred)        # get cost
+            # or log_loss
+            
+            if cost > current_cost:
             
             
         
