@@ -31,7 +31,7 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
 
 
 
-def get_cost(y_true, y_pred):
+def user_cost(y_true, y_pred):
     
     detected = 0
     
@@ -50,26 +50,34 @@ def get_cost(y_true, y_pred):
     
     return cost
 
-def test_model(x_data, y_true, optimum_threshold, repeats):
+def test_model(x_data, y_true, labels):
     
+    repeats = 10;
+    optimum_threshold = 3;
+    
+    # create counts dataframe
+    df_counts = pd.DataFrame(data = np.zeros((1, len(labels))), columns = labels)
     
     # get predictions for each feature
     y_pred_array = x_data > (np.std(x_data, axis=0) * optimum_threshold)
+    df = pd.DataFrame(data = y_pred_array, columns = labels)
     
     # calculate initial cost
-    current_cost = get_cost(y_true, np.mean(y_pred, axis=1) > 0.5)
+    current_cost = get_cost(y_true, np.mean(y_pred_array, axis=1) > 0.5)
+   
+    # get drop list sequence
+    drop_list = labels[np.random.permutation(x_data.shape[1])]
     
-    
-    for ii in range(repeats):
+    for ii in range(repeats): # repeat for robust findings
+            
+        y_pred_temp = df  # get original dataframe
         
         for i in range(x_data.shape[1]):
             
-            idx = np.random.randint(0,y_pred_temp.shape[1]) # get random index
-            y_pred_temp = np.delete(y_pred, idx, 1) # drop idx from prediction array
-            y_pred = np.mean(, axis=1) > 0.5        # get predecitions
-            cost = get_cost(y_true,  y_pred)        # get cost
-            # or log_loss
-            
+            y_pred_temp.drop(drop_list[i], axis=1)  # drop idx from prediction array
+            y_pred = np.mean(y_pred_temp, axis=1) > 0.5 # get predecitions
+            cost = user_cost(y_true,  y_pred)  # get cost ### or log_loss
+
             if cost > current_cost:
             
             
