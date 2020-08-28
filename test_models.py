@@ -16,7 +16,7 @@ from sklearn.metrics import log_loss
 import matplotlib.pyplot as plt
 
 
-### -------------SETTINGS --------------###
+##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
 main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
@@ -24,7 +24,6 @@ ch_list = [0,1] # channel list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,) # single channel features
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
-##### ----------------------------------------------------------------- #####
 
 # Get feature properties
 df = pd.read_csv(os.path.join(main_path,'feature_properties.csv')) # read feature_properties into df
@@ -41,11 +40,18 @@ thresh_array =  [optimum_threshold-1, optimum_threshold-0.5, optimum_threshold,
 weights = [np.ones((1,features.shape[1]),dtype=bool), ranks]
 
 # Define feature sets
-feature_sets = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
+feature_set = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
                 ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
 
-# Expand feature dataset by randomly dropping features
-
+# Expand feature dataset by randomly dropping 1/3 of True features
+n_repeat = 3 # number of times to drop features per dataset
+for i in range(len(feature_set)):
+    temp_feature = feature_set[i]
+    for ii in range(n_repeat):
+        idx = np.random.choice(np.where(temp_feature)[1], np.int(len(temp_feature)/3))
+        feature_set.append(temp_feature[0, idx] = False)
+        
+##### ----------------------------------------------------------------------------------------------------------------------- #####
         
 # class MethodTest:
 #     """ MethodTest
