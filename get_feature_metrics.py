@@ -14,6 +14,7 @@ from build_feature_data import get_data, get_features_allch
 from scipy.stats import pearsonr
 from sklearn.feature_selection import f_classif
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import log_loss
 
 ### -------------SETTINGS --------------###
 # parent_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
