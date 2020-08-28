@@ -7,6 +7,7 @@ Created on Wed Aug 26 15:11:04 2020
 
 ##### ---------------------------------------------------- IMPORTS ----------------------------------------------------- #####
 import os, sys, features
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -16,7 +17,7 @@ from array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
-main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb'  # 3514_3553_3639_3640  3642_3641_3560_3514
+main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\train'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
 # Define total parameter list
@@ -72,7 +73,6 @@ def get_feature_parameters(main_path):
     return thresh_array, weights, feature_set
         
 
-
 class MethodTest:
     """ MethodTest
     Tests different feature combinations for seizure prediction
@@ -100,7 +100,7 @@ class MethodTest:
         self.feature_labels = np.array(self.feature_labels)
         
         # get feature parameters for method testing
-        self.thresh_array, self.weights, self.feature_set = get_feature_parameters(main_path)
+        self.thresh_array, self.weights, self.feature_set = get_feature_parameters(Path(main_path).parents[0])
         
         # define metrics
         self.metrics = ['total', 'detected', 'detected_ratio','false_positives']
@@ -126,20 +126,19 @@ class MethodTest:
             os.mkdir(self.save_folder)
         
         # create csv file for each parameter
-        df_column = ['Enabled_' + x +  for x in self.feature_labels] + 
-        ['Weight_' + x +  for x in self.feature_labels] + ['Thresh_' + x +  for x in self.feature_labels]
+        df_column = self.metrics+ ['Enabled_' + x for x in self.feature_labels] \
+        + ['Weight_' + x for x in self.feature_labels] + ['Thresh_' + x for x in self.feature_labels]
         
-        self.df = pd.DataFrame(data= np.zeros((0, len(self.metrics))), columns = self.metrics, dtype=np.int64)
-        self.df.insert(loc = 0, column ='features', value = self.feature_labels)
-            
+        self.df = pd.DataFrame(data= np.zeros((0, len(df_column))), columns = df_column, dtype=np.int64)
+        breakpoint()
         # get subdirectories
         folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
     
-        # for i in range(len(folders)): # iterate through folders
-        #     print('Analyzing', folders[i], '...' )
+        for i in range(len(folders)): # iterate through folders
+            print('Analyzing', folders[i], '...' )
             
-        #     # append seizure properties to dataframe from folder
-        #     self.folder_loop(folders[i])
+            # append seizure properties to dataframe from folder
+            # self.folder_loop(folders[i])
         
         # get detected ratio
         self.df['detected_ratio'] = self.df['detected']/self.df['total']
@@ -191,7 +190,11 @@ class MethodTest:
                 # detect seizures bigger than threshold
                 y_pred_array = x_data[:,ii]> (np.mean(x_data[:,ii]) + self.thresh_array[ii]*np.std(x_data[:,ii]))
             
-            
+                for i in range(len(self.weights)):
+                    
+                    for ii in range(len(self.feature_set)):
+                        
+                        y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]
             
             bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
             if bounds_pred.shape[0] > 0:
@@ -210,8 +213,8 @@ class MethodTest:
         return True
 
 
-
-
+obj = MethodTest(main_path) 
+obj.multi_folder()
 
 # if __name__ == '__main__':
     
