@@ -7,6 +7,7 @@ Created on Mon Aug 17 11:23:46 2020
 
 
 import os, features, sys
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -22,15 +23,13 @@ import seaborn as sns
 # filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path)))
 
 
-
+# # define time bins
 # cols = ['-120_-90', '-90_-60', '-60_-30', '-30_0', 'during_szr','0_30',
 #         '30_60', '60_90', '90_120']
+## cols = ['-120_-90', '-90_-60', '-60_-30', '-30_0', '0_30',
+##         '30_60', '60_90', '90_120']
 
-
-# cols = ['-120_-90', '-90_-60', '-60_-30', '-30_0', '0_30',
-#         '30_60', '60_90', '90_120']
-
-### #1 How values vary with time
+# ## #1 How values vary with time
 # for i in range(len(filelist)): # len(filelist)
     
 #     # read dataframe
@@ -64,7 +63,7 @@ import seaborn as sns
 # anot_heat.insert(loc = 0, column = 'feature', value = filelist)
 
 
-#### #3 how much bigger is the seizure
+# ### #3 how much bigger is the seizure
 # for i in range(len(filelist)): #len(filelist)
     
 #     # read dataframe
@@ -81,10 +80,7 @@ import seaborn as sns
 #     plt.title(filelist[i])
     
 
-
-
-
-####  #4
+# ####  #4
 # cols = ['x_sdevs'] # ['szr_percentile'] ['x_sdevs']
 # df = pd.read_csv(os.path.join(main_path, 'line_length_0.csv')) 
 # idx = df[cols] < 20
@@ -106,20 +102,22 @@ import seaborn as sns
 # # plot box plot
 # plt.figure()
 # ax = sns.boxplot(data = box_data)
-# ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
+# ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
 # plt.xlabel('Time (seconds)')
 # plt.ylabel(cols)
 # plt.title(ch_dict)
      
     
-# # plot correlation    
-# sns.heatmap(box_data.corr(), 
-#         xticklabels=box_data.columns,
-#         yticklabels=box_data.columns)    
-    
-    
+## # plot correlation    
+## sns.heatmap(box_data.corr(), 
+##         xticklabels=box_data.columns,
+##         yticklabels=box_data.columns)    
+  
 
-##### ------------------ OPTIMUM THRESHOLD ----------------------------- #####   
+###### ---------------------- SELECT DATA BASED ON COST AND FEATURE METRICS  ----------------------------- ######  
+# feature_list =[] # init feature list
+
+##### ------------------  GET ALSO OPTIMUM THRESHOLD ----------------------------- #####   
       
 # get subdirectories
 main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\optimum_threshold'
@@ -128,7 +126,7 @@ filelist = list(filter(lambda k: '.csv' in k, os.listdir(main_path))) # get only
 # get prototype dataframe
 df = pd.read_csv(os.path.join(main_path,filelist[0]))
 
-# get trehsolds
+# get thresholds
 thresh_array = np.zeros(len(filelist))
 for i in range(len(filelist)):
     
@@ -184,7 +182,7 @@ for ii in range(len(df)):
     selected_cost[ii] = cost[idx]
     
 # select data
-print(list(df['features'][selected_cost < np.median(selected_cost)]))
+# feature_list.extend(list(df['features'][selected_cost < np.median(selected_cost)]))
 df_rank.iloc[0] = 1/selected_cost
 df_logic.iloc[0] = selected_cost < np.median(selected_cost)
 
@@ -220,7 +218,7 @@ for i in range(len(filelist)):
     
     # select data
     data = df.drop(['exp_id'],axis=1)
-    print(list(data.columns[data.median()>np.mean(data.median())]))
+    
     df_rank.iloc[i+1] = np.abs(data.median())
     df_logic.iloc[i+1] = data.median()>np.mean(data.median())
     
@@ -232,24 +230,30 @@ for i in range(len(filelist)):
     plt.title(filelist[i])    
     
 ### ------------------------------------------------------------------- ###
+   
+### PLOT SORTED RANKS ###
+# df_rank = df_rank.rank(axis=1)
+# cols = np.array(df.columns[1:])
+# idx = np.argsort(df_rank.mean())
+# Plot sorted ranks
+# f2 = plt.figure()  
+# ax = f2.add_subplot(111) 
+# xticklabels = list(cols[idx])
+# ranks = np.array(df_rank.mean())
+# plt.plot(xticklabels, ranks[idx])
+# ax.set_xticklabels(xticklabels,rotation=90) 
+    
+# create df to save essential info
+df_save = pd.DataFrame(data = np.zeros((2,len(data.columns))), columns = data.columns )
+df_save.iloc[0] =  df_rank.rank(axis=1).mean() # ranks
+df_save.iloc[1] = optimum_threshold # optimum_threshold
+df_save.insert(loc = 0, column ='metrics', value = ['ranks', 'optimum_threshold'])
+path = Path(main_path)
+df_save.to_csv(os.path.join(path.parent, 'feature_properties'))
+    
+    
+    
 
-
-df_rank = df_rank.rank(axis=1)
-cols = np.array(df.columns[1:])
-idx = np.argsort(df_rank.mean())
-f2 = plt.figure()  
-ax = f2.add_subplot(111) 
-xticklabels = list(cols[idx])
-ranks = np.array(df_rank.mean())
-plt.plot(xticklabels, ranks[idx])
-ax.set_xticklabels(xticklabels,rotation=90) 
-    
-    
-    
-    
-    
-    
-    
     
     
     
