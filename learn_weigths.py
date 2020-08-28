@@ -15,6 +15,37 @@ import matplotlib.pyplot as plt
 
 ####### consider isolation forest for outlier detection!!!!!!
 
+def user_cost(y_true, y_pred):
+    """
+    user_cost(y_true, y_pred)
+    
+    Parameters
+    ----------
+    y_true : 1ndarray bool, ground truth values
+    y_pred : 1ndarray bool, predicted values
+
+    Returns
+    -------
+    cost : float
+    """
+    
+    detected = 0 # number of detected seizures
+    
+    # get bounds of sezures
+    bounds_true = find_szr_idx(y_true, np.array([0,1])) # total predicted
+    bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
+    bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
+                    
+    if bounds_pred.shape[0]>0: # find matching seizures   
+        detected = match_szrs(bounds_true, bounds_pred, err_margin = 10)
+     
+    # calculate cost
+    a = 1 - (detected/bounds_true.shape[0]) # get detected ratio 
+    b = (bounds_pred.shape[0] - detected) # get false positives
+    cost = a + np.log10(b+1) # cost function
+    
+    return cost
+
 def create_cost(bounds_true, bounds_pred):
     """
     create_cost(bounds_true, bounds_pred)
@@ -231,38 +262,38 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
 
   # get data and true labels
 exp_path  = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data\3642_3641_3560_3514'
-# 071919_3514 071719_3560
-data, y_true = get_data(exp_path, '071919_3514',ch_num = [0,1], 
+# 071919_3514 071719_3560 
+data, y_true = get_data(exp_path, '072519_3642',ch_num = [0,1], 
                         inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
 
-# get file list
-main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'
-folder_path =  '3514_3553_3639_3640'
-ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
-filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
-filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
+# # get file list
+# main_path = r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'
+# folder_path =  '3514_3553_3639_3640'
+# ver_path = os.path.join(main_path,folder_path, 'verified_predictions_pantelis')
+# filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
+# filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
 
 
-# data, y_true = get_data(r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640, '071819_3553a',ch_num = [0,1], 
-#                         inner_path={'data_path':'reorganized_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
+# # data, y_true = get_data(r'W:\Maguire Lab\Trina\2019\07-July\3514_3553_3639_3640, '071819_3553a',ch_num = [0,1], 
+# #                         inner_path={'data_path':'reorganized_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
 
-for i in range(1):
-    # 071919_3514 071719_3560
-    data, y_true = get_data(os.path.join(main_path, folder_path), filelist[i],ch_num = [0,1], 
-                            inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
+# for i in range(1):
+#     # 071919_3514 071719_3560
+#     data, y_true = get_data(os.path.join(main_path, folder_path), filelist[i],ch_num = [0,1], 
+#                             inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
     
-    if sum(y_true) == 0:
-        continue
+#     if sum(y_true) == 0:
+#         continue
     
-    # get features
-    x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
+# get features
+x_data, labels = get_features_allch(data,param_list,cross_ch_param_list)
 
-    # Normalize data
-    x_data = StandardScaler().fit_transform(x_data)
-    
-    # get cost plot
-    cost_array,thresh_array = find_threshold(x_data, y_true)
+# Normalize data
+x_data = StandardScaler().fit_transform(x_data)
+
+# get cost plot
+cost_array,thresh_array = find_threshold(x_data, y_true)
 
 
 

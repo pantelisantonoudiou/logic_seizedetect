@@ -31,37 +31,6 @@ cross_ch_param_list = (features.cross_corr, features.signal_covar, features.sign
 
 
 
-def user_cost(y_true, y_pred):
-    """
-    user_cost(y_true, y_pred)
-    
-    Parameters
-    ----------
-    y_true : 1ndarray bool, true values
-    y_pred : 1ndarray bool, predicted values
-
-    Returns
-    -------
-    cost : float
-    """
-    
-    detected = 0 # number of detected seizures
-    
-    # get bounds of sezures
-    bounds_true = find_szr_idx(y_true, np.array([0,1])) # total predicted
-    bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
-    bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
-                    
-    if bounds_pred.shape[0]>0: # find matching seizures   
-        detected = match_szrs(bounds_true, bounds_pred, err_margin = 10)
-     
-    # calculate cost
-    a = 1 - (detected/bounds_true.shape[0]) # get detected ratio 
-    b = (bounds_pred.shape[0] - detected) # get false positives
-    cost = a + np.log10(b+1) # cost function
-    
-    return cost
-
 def test_model(x_data, y_true, labels):
     """
     test_model(x_data, y_true, labels)
@@ -74,12 +43,13 @@ def test_model(x_data, y_true, labels):
 
     Returns
     -------
-    df_counts : TYPE
+    df_counts : dataframe (columns= features), normalized counts for kept features
     """
     
+    optimum_threshold = 4;
     
-    repeats = 100;
-    optimum_threshold = 3;
+    repeats = 10; # number of repeats
+    
     
     # create counts dataframe
     df_counts = pd.DataFrame(data = np.zeros((1, len(labels))), columns = labels)
@@ -105,13 +75,16 @@ def test_model(x_data, y_true, labels):
             y_pred = np.mean(y_pred_temp.drop(drop_list[i], axis=1) , axis=1) > 0.5 # get predecitions
             # cost = user_cost(y_true, np.array(y_pred))  # calculate cost 
             cost = log_loss(y_true, y_pred)
-            
-            if cost < current_cost:
+
+            if cost <= current_cost:
                 y_pred = y_pred_temp.drop(drop_list[i], axis=1)  # drop idx from prediction array
             else:
                 cost = current_cost; # update cost
                 df_counts[drop_list[i]] +=1 # add 1 if the feature is kept
-
+                
+    
+    df_counts/=repeats # normalize
+    df_counts = df_counts > 0.5 # get maximum vote
     return df_counts
 
 
