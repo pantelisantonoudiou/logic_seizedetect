@@ -25,62 +25,80 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
               features.get_envelope_max_diff,) # single channel features
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
 
-# Get feature properties
-df = pd.read_csv(os.path.join(main_path,'feature_properties.csv')) # read feature_properties into df
-features = np.array(df.columns[1:]).reshape(1,-1) # get features
-ranks = np.array(df.loc[df['metrics'] == 'ranks'])[:,1:] # get ranks
-optimum_threshold = np.array(df.loc[df['metrics'] == 'optimum_threshold'])[:,1:] # get optimum thresholds for each feature
+def get_feature_parameters(main_path):
+    """
+    thresh_array, weights, feature_set = get_feature_parameters(main_path)
 
-# Define different threshold levels for testing
-thresh_array =  [optimum_threshold-1, optimum_threshold-0.5, optimum_threshold,
-                 optimum_threshold+0.5, optimum_threshold+1, np.ones((1,features.shape[1]))*2,
-                 np.ones((1,features.shape[1]))*2.5, np.ones((1,features.shape[1]))*3, np.ones((1,features.shape[1]))*3.5]
+    Parameters
+    ----------
+    main_path : TYPE
+    
+    Returns
+    -------
+    thresh_array : TYPE
+    weights : TYPE
+    feature_set : TYPE
 
-# Define two sets of weights
-weights = [np.ones((1,features.shape[1]),dtype=bool), ranks]
-
-# Define feature sets
-feature_set = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
-                ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
-
-# Expand feature dataset by randomly dropping 1/3 of True features
-n_repeat = 3 # number of times to drop features per dataset
-for i in range(len(feature_set)):
-    temp_feature = feature_set[i]
-    for ii in range(n_repeat):
-        idx = np.random.choice(np.where(temp_feature)[1], np.int(len(temp_feature)/3))
-        feature_set.append(temp_feature[0, idx] = False)
+    """
+    # Get feature properties
+    df = pd.read_csv(os.path.join(main_path,'feature_properties.csv')) # read feature_properties into df
+    features = np.array(df.columns[1:]).reshape(1,-1) # get features
+    ranks = np.array(df.loc[df['metrics'] == 'ranks'])[:,1:] # get ranks
+    optimum_threshold = np.array(df.loc[df['metrics'] == 'optimum_threshold'])[:,1:] # get optimum thresholds for each feature
+    
+    # Define different threshold levels for testing
+    thresh_array =  [optimum_threshold-1, optimum_threshold-0.5, optimum_threshold,
+                     optimum_threshold+0.5, optimum_threshold+1, np.ones((1,features.shape[1]))*2,
+                     np.ones((1,features.shape[1]))*2.5, np.ones((1,features.shape[1]))*3, np.ones((1,features.shape[1]))*3.5]
+    
+    # Define two sets of weights
+    weights = [np.ones((1,features.shape[1]),dtype=bool), ranks]
+    
+    # Define feature sets
+    feature_set_or = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
+                    ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
+    
+    # Expand feature dataset by randomly dropping 1/3 of True features
+    n_repeat = 5 # number of times to drop features per dataset
+    feature_set = feature_set_or.copy()
+    for i in range(len(feature_set_or)):
+        for ii in range(n_repeat):
+            temp_feature = feature_set_or[i].copy() # get a copy
+            true_idx = np.where(temp_feature)[1] # get true index
+            idx = np.random.choice(true_idx, np.int(len(true_idx)/2), replace=True) # get idx to convert to False
+            temp_feature[0, idx] = False # convert to false
+            feature_set.append(temp_feature)
+            
+    return thresh_array, weights, feature_set
         
 ##### ----------------------------------------------------------------------------------------------------------------------- #####
-        
-# class MethodTest:
-#     """ MethodTest
-#     Tests different feature combinations for seizure prediction
-#     """
+
+class MethodTest:
+    """ MethodTest
+    Tests different feature combinations for seizure prediction
+    """
     
-#     # class constructor (data retrieval)
-#     def __init__(self, main_path):
-#         """
-#         ThreshMetrics(main_path)
+    # class constructor (data retrieval)
+    def __init__(self, main_path):
+        """
+        ThreshMetrics(main_path)
 
-#         Parameters
-#         ----------
-#         input_path : Str, path to parent directory.
-#         """
+        Parameters
+        ----------
+        input_path : Str, path to parent directory.
+        """
         
-#         # pass parameters to object
-#         self.main_path = main_path # main path
-#         self.ch_list = ch_list # chanel list to be analyzed
+        # pass parameters to object
+        self.main_path = main_path # main path
+        self.ch_list = ch_list # chanel list to be analyzed
 
-#         # create feature labels
-#         self.feature_labels=[]
-#         for n in ch_list:
-#             self.feature_labels += [x.__name__ + '_'+ str(n) for x in param_list]
-#         self.feature_labels += [x.__name__  for x in cross_ch_param_list]
-#         self.feature_labels = np.array(self.feature_labels)
+        # create feature labels
+        self.feature_labels=[]
+        for n in ch_list:
+            self.feature_labels += [x.__name__ + '_'+ str(n) for x in param_list]
+        self.feature_labels += [x.__name__  for x in cross_ch_param_list]
+        self.feature_labels = np.array(self.feature_labels)
         
-#         # define metrics
-#         self.metrics = ['total', 'detected', 'detected_ratio','false_positives']
 
 #     def multi_folder(self):
 #         """
