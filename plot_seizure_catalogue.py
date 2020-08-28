@@ -249,7 +249,7 @@ df_save.iloc[0] =  df_rank.rank(axis=1).mean() # ranks
 df_save.iloc[1] = optimum_threshold # optimum_threshold
 df_save.insert(loc = 0, column ='metrics', value = ['ranks', 'optimum_threshold'])
 path = Path(main_path)
-df_save.to_csv(os.path.join(path.parent, 'feature_properties'))
+df_save.to_csv(os.path.join(path.parent, 'feature_properties.csv'), index = False)
     
     
     

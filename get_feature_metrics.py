@@ -199,6 +199,61 @@ def random_forest(x_data, y_true):
     model.fit(x_data, y_true)
     return model.feature_importances_ 
 
+# Log loss feature drop, need to change df and 
+def log_loss_feature_drop(x_data, y_true, labels):
+    """
+    test_model(x_data, y_true, labels)
+    
+    Parameters
+    ----------
+    x_data : TYPE
+    y_true : TYPE
+    labels : TYPE
+
+    Returns
+    -------
+    df_counts : dataframe (columns= features), normalized counts for kept features
+    """
+    
+    optimum_threshold = 3; #[2,3,4,5]
+    
+    repeats = 10; # number of repeats
+    
+    # create counts dataframe
+    df_counts = pd.DataFrame(data = np.zeros((1, len(labels))), columns = labels)
+    
+    # get predictions for each feature
+    y_pred_array = x_data > (np.std(x_data, axis=0) * optimum_threshold)
+    df = pd.DataFrame(data = y_pred_array, columns = labels)
+    
+    # calculate initial cost
+    # current_cost = user_cost(y_true, np.mean(y_pred_array, axis=1) > 0.5)
+    current_cost =  log_loss(y_true, np.mean(y_pred_array, axis=1) > 0.5)
+   
+    for ii in range(repeats): # repeat for robust findings
+    
+        # get random drop list sequence
+        drop_list = labels[np.random.permutation(x_data.shape[1])]
+            
+        y_pred_temp = df  # get original dataframe
+        
+        for i in range(x_data.shape[1]): # loop through features
+             
+            y_pred = np.mean(y_pred_temp.drop(drop_list[i], axis=1) , axis=1) > 0.5 # get predecitions
+            # cost = user_cost(y_true, np.array(y_pred))  # calculate cost 
+            cost = log_loss(y_true, y_pred)
+
+            if cost <= current_cost:
+                y_pred = y_pred_temp.drop(drop_list[i], axis=1)  # drop idx from prediction array
+            else:
+                cost = current_cost; # update cost
+                df_counts[drop_list[i]] +=1 # add 1 if the feature is kept
+                
+    
+    df_counts/=repeats # normalize
+    df_counts = df_counts > 0.5 # get maximum vote
+    return df_counts  
+
 ### --------------------------------------------------------------------- ###
 
 
@@ -212,7 +267,7 @@ if __name__ == '__main__':
         
         
         
-        
+      
         
         
         

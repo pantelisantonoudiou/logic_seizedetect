@@ -5,11 +5,6 @@ Created on Wed Aug 26 15:11:04 2020
 @author: Pante
 """
 
-# from csv get
-# parameters
-# weights
-# thresholds
-
 import os, sys, features
 import numpy as np
 import pandas as pd
@@ -19,83 +14,39 @@ from build_feature_data import get_data, get_features_allch
 from array_helper import find_szr_idx, match_szrs, merge_close
 from sklearn.metrics import log_loss
 import matplotlib.pyplot as plt
+
+
 ### -------------SETTINGS --------------###
-# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
-# define parameter list
+# Define total parameter list
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
               features.get_envelope_max_diff,) # single channel features
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
 ##### ----------------------------------------------------------------- #####
 
+# Get feature properties
+df = pd.read_csv(os.path.join(main_path,'feature_properties.csv')) # read feature_properties into df
+features = np.array(df.columns[1:]).reshape(1,-1) # get features
+ranks = np.array(df.loc[df['metrics'] == 'ranks'])[:,1:] # get ranks
+optimum_threshold = np.array(df.loc[df['metrics'] == 'optimum_threshold'])[:,1:] # get optimum thresholds for each feature
 
+# Define different threshold levels for testing
+thresh_array =  [optimum_threshold-1, optimum_threshold-0.5, optimum_threshold,
+                 optimum_threshold+0.5, optimum_threshold+1, np.ones((1,features.shape[1]))*2,
+                 np.ones((1,features.shape[1]))*2.5, np.ones((1,features.shape[1]))*3, np.ones((1,features.shape[1]))*3.5]
 
-def test_model(x_data, y_true, labels):
-    """
-    test_model(x_data, y_true, labels)
-    
-    Parameters
-    ----------
-    x_data : TYPE
-    y_true : TYPE
-    labels : TYPE
+# Define two sets of weights
+weights = [np.ones((1,features.shape[1]),dtype=bool), ranks]
 
-    Returns
-    -------
-    df_counts : dataframe (columns= features), normalized counts for kept features
-    """
-    
-    optimum_threshold = 4;
-    
-    repeats = 10; # number of repeats
-    
-    
-    # create counts dataframe
-    df_counts = pd.DataFrame(data = np.zeros((1, len(labels))), columns = labels)
-    
-    
-    # get predictions for each feature
-    y_pred_array = x_data > (np.std(x_data, axis=0) * optimum_threshold)
-    df = pd.DataFrame(data = y_pred_array, columns = labels)
-    
-    # calculate initial cost
-    # current_cost = user_cost(y_true, np.mean(y_pred_array, axis=1) > 0.5)
-    current_cost =  log_loss(y_true, np.mean(y_pred_array, axis=1) > 0.5)
-   
-    for ii in range(repeats): # repeat for robust findings
-    
-        # get random drop list sequence
-        drop_list = labels[np.random.permutation(x_data.shape[1])]
-            
-        y_pred_temp = df  # get original dataframe
+# Define feature sets
+feature_sets = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
+                ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
+
+# Expand feature dataset by randomly dropping features
+
         
-        for i in range(x_data.shape[1]): # loop through features
-             
-            y_pred = np.mean(y_pred_temp.drop(drop_list[i], axis=1) , axis=1) > 0.5 # get predecitions
-            # cost = user_cost(y_true, np.array(y_pred))  # calculate cost 
-            cost = log_loss(y_true, y_pred)
-
-            if cost <= current_cost:
-                y_pred = y_pred_temp.drop(drop_list[i], axis=1)  # drop idx from prediction array
-            else:
-                cost = current_cost; # update cost
-                df_counts[drop_list[i]] +=1 # add 1 if the feature is kept
-                
-    
-    df_counts/=repeats # normalize
-    df_counts = df_counts > 0.5 # get maximum vote
-    return df_counts
-
-
-            
-            
-         
-    
-        
-
-
-
 # class MethodTest:
 #     """ MethodTest
 #     Tests different feature combinations for seizure prediction
@@ -234,6 +185,10 @@ def test_model(x_data, y_true, labels):
 #                     self.df.at[ii, 'detected'] += detected
 #                     self.df.at[ii, 'false_positives'] += bounds_pred.shape[0] - detected
 #         return True
+
+
+
+
 
 # if __name__ == '__main__':
     
