@@ -17,7 +17,7 @@ from array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
-main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\train'  # 3514_3553_3639_3640  3642_3641_3560_3514
+main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
 # Define total parameter list
@@ -103,7 +103,7 @@ class MethodTest:
         self.thresh_array, self.weights, self.feature_set = get_feature_parameters(Path(main_path).parents[0])
         
         # define metrics
-        self.metrics = ['total', 'detected', 'detected_ratio','false_positives']
+        self.metrics = ['total', 'detected', 'detected_ratio', 'false_positives']
         
     def multi_folder(self):
         """
@@ -116,21 +116,20 @@ class MethodTest:
     
         """
         print('--------------------- START --------------------------')
-        print('------------------------------------------------------')
-        print('Getting metrics from :', self.main_path)
-        
+        print('Testing methods on :', self.main_path)
         
         # get save dir
         self.save_folder = os.path.join(self.main_path, 'model_performance') 
         if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
         
-        # create csv file for each parameter
-        df_column = self.metrics+ ['Enabled_' + x for x in self.feature_labels] \
+        # create df columns
+        self.columns = self.metrics+ ['Enabled_' + x for x in self.feature_labels] \
         + ['Weight_' + x for x in self.feature_labels] + ['Thresh_' + x for x in self.feature_labels]
         
-        self.df = pd.DataFrame(data= np.zeros((0, len(df_column))), columns = df_column, dtype=np.int64)
-        breakpoint()
+        # create empty df
+        self.df = pd.DataFrame(data= np.zeros((0, len(self.columns))), columns = self.columns, dtype=np.int64)
+        
         # get subdirectories
         folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
     
@@ -146,11 +145,8 @@ class MethodTest:
         # save dataframe to csv
         file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold).replace('.', '-') +'.csv')
         self.df.to_csv(file_name, header=True, index = False)
-        print('Seizure metrics saved to:', file_name)
-        
-        
+        print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
-        print('------------------------------------------------------')
 
 
     def folder_loop(self, folder_name):
@@ -181,36 +177,38 @@ class MethodTest:
                                     inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
             
             x_data, labels = get_features_allch(data,param_list,cross_ch_param_list) # Get features and labels
-            
             x_data = StandardScaler().fit_transform(x_data) # Normalize data
-            
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # get bounds of true seizures
             
             for ii in range(len(self.thresh_array)):
                 # detect seizures bigger than threshold
                 y_pred_array = x_data[:,ii]> (np.mean(x_data[:,ii]) + self.thresh_array[ii]*np.std(x_data[:,ii]))
-            
-                for i in range(len(self.weights)):
-                    
-                    for ii in range(len(self.feature_set)):
-                        
-                        y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]
-            
-            bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
-            if bounds_pred.shape[0] > 0:
-                # get bounds of predicted sezures
-                
-                bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
-                detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
-            
-
-
-            # get total numbers
-            self.df.at[ii, 'total'] += bounds_true.shape[0] 
-            self.df.at[ii, 'detected'] += detected
-            self.df.at[ii, 'false_positives'] += bounds_pred.shape[0] - detected
-
+                self.append_pred(y_pred_array, self.thresh_array[ii]) # append predictions
         return True
+    
+    
+    def append_pred(self, y_pred_array, thresh):
+        
+        for i in range(len(self.weights)):        
+            for ii in range(len(self.feature_set)):      
+                
+                temp_df = pd.DataFrame(data= np.zeros((0, len(self.columns))), columns = self.columns, dtype=np.int64)
+                df1.append(temp_df, ignore_index = True)
+                
+                y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]
+                bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
+                
+                detected =0
+                if bounds_pred.shape[0] > 0:
+                    # get bounds of predicted sezures
+                    bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
+                    detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
+                    
+                    
+                # get total numbers
+                temp_df['total'] += bounds_true.shape[0] 
+                temp_df['detected'] += detected
+                temp_df['false_positives'] += bounds_pred.shape[0] - detected
 
 
 obj = MethodTest(main_path) 
