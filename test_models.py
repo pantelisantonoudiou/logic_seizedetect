@@ -206,32 +206,31 @@ class MethodTest:
             x_data = StandardScaler().fit_transform(x_data) # Normalize data
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # get bounds of true seizures
             
-            self.df_cntr = 0;
+            self.df_cntr = 0; # restart df_cntr
             for ii in range(len(self.thresh_array)):
                 # detect seizures bigger than threshold
-                y_pred_array = x_data[:,ii]> (np.mean(x_data[:,ii]) + self.thresh_array[ii]*np.std(x_data[:,ii]))
-                self.append_pred(y_pred_array, bounds_true) # append predictions
+                thresh = (np.mean(x_data[:,ii]) + self.thresh_array[ii] * np.std(x_data[:,ii])) # get threshold
+                y_pred_array = x_data > thresh # get predictions
+                self.append_pred(y_pred_array, bounds_true) # add predictions to self.df
         return True
     
     
     def append_pred(self, y_pred_array, bounds_true):
         """
-        Appends metrics to array
+        Adds metrics to self.df
 
         Parameters
         ----------
         y_pred_array : bp array, bool
         bounds_true : TYPE
-
-        Returns
-        -------
-
         """
-        
+        breakpoint()
         for i in range(len(self.weights)):    
             for ii in range(len(self.feature_set)):              
-                # get predictions based on weights and selected features
-                y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]
+               
+                # find predicted seizures
+                y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
+                y_pred = np.sum(y_pred,axis=1) > 0.5 # popular vote
                 bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
                 
                 detected = 0 # set default detected to 0
@@ -241,10 +240,9 @@ class MethodTest:
                     detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
                     
                 # get total numbers
-                temp_df['total'][self.df_cntr] += bounds_true.shape[0] # total true
+                self.df['total'][self.df_cntr] += bounds_true.shape[0] # total true
                 self.df['detected'][self.df_cntr] += detected # n of detected seizures
-                temp_df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
-                
+                self.df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
                 self.df_cntr += 1 # update counter
 
 
