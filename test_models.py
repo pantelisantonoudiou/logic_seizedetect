@@ -235,7 +235,7 @@ class MethodTest:
                
                 # find predicted seizures
                 y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
-                y_pred = np.sum(y_pred,axis=1)/ np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
+                y_pred = np.sum(y_pred,axis=1) / np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
                 y_pred = y_pred > 0.5 # get popular vote
                 bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
                 
