@@ -80,9 +80,8 @@ class ThreshMetrics:
             self.threshold = threshold_array[ii] # set threshold
             print('Seizure threshold set at :', self.threshold,'\n')
         
-            # create csv file for each parameter
-            
-            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(self.metrics))), columns = self.metrics, dtype=np.int64)
+            # create df for storage of metrics
+            self.df = pd.DataFrame(data= np.zeros((len(self.feature_labels), len(self.metrics))), columns = self.metrics)
             self.df.insert(loc = 0, column ='features', value = self.feature_labels)
                 
             # get subdirectories

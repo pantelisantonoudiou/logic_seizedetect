@@ -44,31 +44,35 @@ def get_feature_parameters(main_path):
     # Get feature properties
     df = pd.read_csv(os.path.join(main_path,'feature_properties.csv')) # read feature_properties into df
     features = np.array(df.columns[1:]).reshape(1,-1) # get features
-    ranks = np.array(df.loc[df['metrics'] == 'ranks'])[:,1:] # get ranks
-    optimum_threshold = np.array(df.loc[df['metrics'] == 'optimum_threshold'])[:,1:] # get optimum thresholds for each feature
+    ranks = np.array(df.loc[df['metrics'] == 'ranks'])[0][1:] # get ranks
+    ranks = ranks.astype(np.double) # convert to double
+    optimum_threshold = np.array(df.loc[df['metrics'] == 'optimum_threshold'])[0][1:]# get optimum thresholds for each feature
+    optimum_threshold = optimum_threshold.astype(np.double) # convert to double
+    
     
     # Define different threshold levels for testing
     thresh_array =  [optimum_threshold-1, optimum_threshold-0.5, optimum_threshold,
-                     optimum_threshold+0.5, optimum_threshold+1, np.ones((1,features.shape[1]))*2,
-                     np.ones((1,features.shape[1]))*2.5, np.ones((1,features.shape[1]))*3, np.ones((1,features.shape[1]))*3.5]
+                     optimum_threshold+0.5, optimum_threshold+1, np.ones((features.shape[1]))*2,
+                     np.ones((features.shape[1]))*2.5, np.ones((features.shape[1]))*3, np.ones((features.shape[1]))*3.5]
     
     # Define two sets of weights
-    weights = [np.ones((1,features.shape[1]),dtype=bool), ranks]
+    weights = [np.ones((features.shape[1])), ranks]
     
     # Define feature sets
-    feature_set_or = [np.ones((1,features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
+    feature_set_or = [np.ones((features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
                     ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
     
     # Expand feature dataset by randomly dropping 1/3 of True features
     n_repeat = 5 # number of times to drop features per dataset
     feature_set = feature_set_or.copy()
-    for i in range(len(feature_set_or)):
-        for ii in range(n_repeat):
+    
+    for i in range(len(feature_set_or)): # iterate through original data-set
+        for ii in range(n_repeat): # iterate n times to drop random features
             temp_feature = feature_set_or[i].copy() # get a copy
-            true_idx = np.where(temp_feature)[1] # get true index
+            true_idx = np.where(temp_feature)[0] # get true index
             idx = np.random.choice(true_idx, np.int(len(true_idx)/2), replace=True) # get idx to convert to False
-            temp_feature[0, idx] = False # convert to false
-            feature_set.append(temp_feature)
+            temp_feature[idx] = False # convert to false
+            feature_set.append(temp_feature) # append to list
             
     return thresh_array, weights, feature_set
         
@@ -123,12 +127,8 @@ class MethodTest:
         if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
         
-        # create df columns
-        self.columns = self.metrics+ ['Enabled_' + x for x in self.feature_labels] \
-        + ['Weight_' + x for x in self.feature_labels] + ['Thresh_' + x for x in self.feature_labels]
-        
-        # create empty df
-        self.df = pd.DataFrame(data= np.zeros((0, len(self.columns))), columns = self.columns, dtype=np.int64)
+        # create df for saving
+        self.create_save_df()
         
         # get subdirectories
         folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
@@ -147,7 +147,33 @@ class MethodTest:
         self.df.to_csv(file_name, header=True, index = False)
         print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
-
+        
+    def create_save_df(self):
+        """
+        create_save_df, 
+        Create self dataframe  based on thresholds, weighs and feature set.
+        """
+        
+        # get df columns
+        self.columns = self.metrics + ['Thresh_' + x for x in self.feature_labels] \
+        + ['Weight_' + x for x in self.feature_labels] + ['Enabled_' + x for x in self.feature_labels]
+        
+        # create df 
+        rows = len(self.thresh_array) * len(self.weights) *len(self.feature_set)
+        self.df = pd.DataFrame(data= np.zeros((rows, len(self.columns))), columns = self.columns)
+        
+        cntr = 0; # init cntr
+        
+        # get index
+        idx2 = len(self.metrics) + len(self.feature_labels); idx3 = idx2 + len(self.feature_labels);
+        
+        for i in range(len(self.thresh_array)):
+            for ii in range(len(self.weights)):
+                for iii in range(len(self.feature_set)):
+                    self.df.loc[cntr][len(self.metrics):idx2] = self.thresh_array[i] # threshold
+                    self.df.loc[cntr][idx2:idx3] = self.weights[ii] # weights
+                    self.df.loc[cntr][idx3:] = self.feature_set[iii].astype(np.double) # feature logic (enable/disable)
+                    cntr+=1 # update counter
 
     def folder_loop(self, folder_name):
         """
@@ -203,7 +229,6 @@ class MethodTest:
                     # get bounds of predicted sezures
                     bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
                     detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
-                    
                     
                 # get total numbers
                 temp_df['total'] += bounds_true.shape[0] 
