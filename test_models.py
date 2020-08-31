@@ -61,18 +61,21 @@ def get_feature_parameters(main_path):
     feature_set_or = [np.ones((features.shape[1]), dtype=bool), ranks>np.percentile(ranks,25),
                     ranks>np.percentile(ranks,50), ranks>np.percentile(ranks,75)]
     
-    # Expand feature dataset by randomly dropping 1/3 of True features
-    n_repeat = 5 # number of times to drop features per dataset
+    # Expand feature dataset by randomly dropping selected features
+    n_repeat = 100 # number of times to drop features per dataset
     feature_set = feature_set_or.copy()
     
     for i in range(len(feature_set_or)): # iterate through original data-set
         for ii in range(n_repeat): # iterate n times to drop random features
+            drop_percentage = np.random.randint(2,4) # get random percentage to drop
             temp_feature = feature_set_or[i].copy() # get a copy
             true_idx = np.where(temp_feature)[0] # get true index
-            idx = np.random.choice(true_idx, np.int(len(true_idx)/2), replace=True) # get idx to convert to False
+            idx = np.random.choice(true_idx, np.int(len(true_idx)/drop_percentage), replace=True) # get idx to convert to False
             temp_feature[idx] = False # convert to false
             feature_set.append(temp_feature) # append to list
-            
+  
+    feature_set = [np.array(x) for x in set(tuple(x) for x in feature_set)] # get unique feature sets
+
     return thresh_array, weights, feature_set
         
 
