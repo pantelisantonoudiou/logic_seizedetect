@@ -137,7 +137,7 @@ class MethodTest:
             print('Analyzing', folders[i], '...' )
             
             # append seizure properties to dataframe from folder
-            # self.folder_loop(folders[i])
+            self.folder_loop(folders[i])
         
         # get detected ratio
         self.df['detected_ratio'] = self.df['detected']/self.df['total']
@@ -206,34 +206,46 @@ class MethodTest:
             x_data = StandardScaler().fit_transform(x_data) # Normalize data
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # get bounds of true seizures
             
+            self.df_cntr = 0;
             for ii in range(len(self.thresh_array)):
                 # detect seizures bigger than threshold
                 y_pred_array = x_data[:,ii]> (np.mean(x_data[:,ii]) + self.thresh_array[ii]*np.std(x_data[:,ii]))
-                self.append_pred(y_pred_array, self.thresh_array[ii]) # append predictions
+                self.append_pred(y_pred_array, bounds_true) # append predictions
         return True
     
     
-    def append_pred(self, y_pred_array, thresh):
+    def append_pred(self, y_pred_array, bounds_true):
+        """
+        Appends metrics to array
+
+        Parameters
+        ----------
+        y_pred_array : bp array, bool
+        bounds_true : TYPE
+
+        Returns
+        -------
+
+        """
         
-        for i in range(len(self.weights)):        
-            for ii in range(len(self.feature_set)):      
-                
-                temp_df = pd.DataFrame(data= np.zeros((0, len(self.columns))), columns = self.columns, dtype=np.int64)
-                df1.append(temp_df, ignore_index = True)
-                
+        for i in range(len(self.weights)):    
+            for ii in range(len(self.feature_set)):              
+                # get predictions based on weights and selected features
                 y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]
-                bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # total predicted
+                bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
                 
-                detected =0
+                detected = 0 # set default detected to 0
                 if bounds_pred.shape[0] > 0:
                     # get bounds of predicted sezures
                     bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
                     detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
                     
                 # get total numbers
-                temp_df['total'] += bounds_true.shape[0] 
-                temp_df['detected'] += detected
-                temp_df['false_positives'] += bounds_pred.shape[0] - detected
+                temp_df['total'][self.df_cntr] += bounds_true.shape[0] # total true
+                self.df['detected'][self.df_cntr] += detected # n of detected seizures
+                temp_df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
+                
+                self.df_cntr += 1 # update counter
 
 
 obj = MethodTest(main_path) 
