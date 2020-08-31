@@ -17,7 +17,7 @@ from array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
-main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
 # Define total parameter list
@@ -106,6 +106,12 @@ class MethodTest:
         # get feature parameters for method testing
         self.thresh_array, self.weights, self.feature_set = get_feature_parameters(Path(main_path).parents[0])
         
+        if self.feature_set[0].shape[0] != len(self.feature_labels): 
+            print('Size of features from csv file does not match object feature length')
+            
+            ## ADD statement to check that all features match!!!
+            return
+        
         # define metrics
         self.metrics = ['total', 'detected', 'detected_ratio', 'false_positives']
         
@@ -143,7 +149,7 @@ class MethodTest:
         self.df['detected_ratio'] = self.df['detected']/self.df['total']
         
         # save dataframe to csv
-        file_name = os.path.join(self.save_folder, 'threshold_'+ str(self.threshold).replace('.', '-') +'.csv')
+        file_name = os.path.join(self.save_folder, 'all_method_metrics.csv')
         self.df.to_csv(file_name, header=True, index = False)
         print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
@@ -167,9 +173,9 @@ class MethodTest:
         # get index
         idx2 = len(self.metrics) + len(self.feature_labels); idx3 = idx2 + len(self.feature_labels);
         
-        for i in range(len(self.thresh_array)):
-            for ii in range(len(self.weights)):
-                for iii in range(len(self.feature_set)):
+        for i in range(len(self.thresh_array)): # iterate thresholds
+            for ii in range(len(self.weights)): # iterate weights
+                for iii in range(len(self.feature_set)): # iterate feature_set
                     self.df.loc[cntr][len(self.metrics):idx2] = self.thresh_array[i] # threshold
                     self.df.loc[cntr][idx2:idx3] = self.weights[ii] # weights
                     self.df.loc[cntr][idx3:] = self.feature_set[iii].astype(np.double) # feature logic (enable/disable)
@@ -221,10 +227,10 @@ class MethodTest:
 
         Parameters
         ----------
-        y_pred_array : bp array, bool
-        bounds_true : TYPE
+        y_pred_array : np array, bool (rows = time, columns = features)
+        bounds_true : np.array (rows = seizures, cols= [start idx, stop idx])
         """
-        breakpoint()
+       
         for i in range(len(self.weights)):    
             for ii in range(len(self.feature_set)):              
                
@@ -245,14 +251,10 @@ class MethodTest:
                 self.df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
                 self.df_cntr += 1 # update counter
 
-
-obj = MethodTest(main_path) 
-obj.multi_folder()
-
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     if len(sys.argv) == 2:
-#         obj = ThreshMetrics(sys.argv[1]) # instantiate and pass main path
-#         obj.multi_folder() # get catalogue for multiple folders
-#     else:
-#         print('Please provide parent directory')
+    if len(sys.argv) == 2:
+        obj = MethodTest(sys.argv[1]) # instantiate and pass main path
+        obj.multi_folder() # get catalogue for multiple folders
+    else:
+        print('Please provide parent directory')
