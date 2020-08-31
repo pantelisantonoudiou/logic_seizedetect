@@ -17,7 +17,6 @@ from array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
-# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 ch_list = [0,1] # channel list
 
 # Define total parameter list
@@ -236,7 +235,8 @@ class MethodTest:
                
                 # find predicted seizures
                 y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
-                y_pred = np.sum(y_pred,axis=1) > 0.5 # popular vote
+                y_pred = np.sum(y_pred,axis=1)/ np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
+                y_pred = y_pred > 0.5 # get popular vote
                 bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
                 
                 detected = 0 # set default detected to 0
@@ -258,3 +258,7 @@ if __name__ == '__main__':
         obj.multi_folder() # get catalogue for multiple folders
     else:
         print('Please provide parent directory')
+   
+# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
+# obj = MethodTest(main_path) # instantiate and pass main path
+# obj.multi_folder() # get catalogue for multiple folders
