@@ -54,7 +54,7 @@ class MethodTest:
         self.feature_labels = np.array(self.feature_labels)
         
         # get df from training and empty metrics
-        self.df = pd.read_csv(os.pah.join(Path(main_path).parents[0], 'all_method_metrics_train.csv'))
+        self.df = pd.read_csv(os.path.join(Path(main_path).parents[0], 'all_method_metrics_train.csv'))
         self.df[['total','detected','detected_ratio','false_positives']] = 0
         
         # get parameter index
@@ -63,8 +63,7 @@ class MethodTest:
         self.enabled = np.where(np.array(self.df.columns.str.contains('Enabled')))[0]
 
         if self.df.columns.str.contains('Enabled').sum() != len(self.feature_labels): 
-            print('Size of features from csv file does not match object feature length')
-            
+            print('Error! Size of features from csv file does not match object feature length')
             ## ADD statement to check that all features match!!!
             return
         
@@ -83,16 +82,13 @@ class MethodTest:
         print('Testing methods on :', self.main_path)
         
         # get save dir
-        self.save_folder = os.path.join(self.main_path, 'best_model_performance') 
+        self.save_folder = os.path.join(self.main_path, 'model_performance') 
         if os.path.exists(self.save_folder) is False:  # create save folder if it doesn't exist
             os.mkdir(self.save_folder)
         
-        # create df for saving
-        self.create_save_df()
-        
         # get subdirectories
         folders = [f.name for f in os.scandir(self.main_path) if f.is_dir()]
-    
+        
         for i in range(len(folders)): # iterate through folders
             print('Analyzing', folders[i], '...' )
             
@@ -103,7 +99,7 @@ class MethodTest:
         self.df['detected_ratio'] = self.df['detected']/self.df['total']
         
         # save dataframe to csv
-        file_name = os.path.join(self.save_folder, 'all_bestmethod_metrics.csv')
+        file_name = os.path.join(self.save_folder, 'best_method_metrics.csv')
         self.df.to_csv(file_name, header=True, index = False)
         print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
@@ -129,7 +125,7 @@ class MethodTest:
                 return False
         filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
         filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
-     
+        
         for i in tqdm(range(0, len(filelist))): # iterate through experiments
     
             # get data and true labels
@@ -140,15 +136,16 @@ class MethodTest:
             x_data = StandardScaler().fit_transform(x_data) # Normalize data
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # get bounds of true seizures
             
-            self.df_cntr = 0; # restart df_cntr
-            for ii in range(len(self.df)):
+            for ii in range(len(self.df)): # iterate through df
                 # detect seizures bigger than threshold
-                thresh = (np.mean(x_data) + self.df.loc[ii][self.thresh] * np.std(x_data)) # get threshold
+                thresh = (np.mean(x_data) + np.array(self.df.loc[ii][self.thresh]) * np.std(x_data)) # get threshold
                 y_pred_array = x_data > thresh # get predictions
                 
                 # find predicted seizures
-                y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
-                y_pred = np.sum(y_pred,axis=1) / np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
+                w = np.array(self.df.loc[ii][self.weights]) # get weights 
+                e =  np.array(self.df.loc[ii][self.enabled]) # get enabled features
+                y_pred = y_pred_array * w * e # get predictions based on weights and selected features
+                y_pred = np.sum(y_pred, axis=1) / np.sum(w * e) # normalize to weights and selected features
                 y_pred = y_pred > 0.5 # get popular vote
                 bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
                 
@@ -165,8 +162,13 @@ class MethodTest:
                 
         return True
     
-if __name__ == '__main__':
+###  TESTING CODE - IPYTHON ###
+# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Test_data'
+# obj = MethodTest(main_path) # instantiate and pass main path
+# obj.multi_folder() # get catalogue for multiple folders   
     
+    
+if __name__ == '__main__':
     if len(sys.argv) == 2:
         obj = MethodTest(sys.argv[1]) # instantiate and pass main path
         obj.multi_folder() # get catalogue for multiple folders
