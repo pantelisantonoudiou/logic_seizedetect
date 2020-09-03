@@ -217,7 +217,7 @@ class MethodTest:
             self.df_cntr = 0; # restart df_cntr
             for ii in range(len(self.thresh_array)):
                 # detect seizures bigger than threshold
-                thresh = (np.mean(x_data[:,ii]) + self.thresh_array[ii] * np.std(x_data[:,ii])) # get threshold
+                thresh = (np.mean(x_data) + self.thresh_array[ii] * np.std(x_data)) # get threshold
                 y_pred_array = x_data > thresh # get predictions
                 self.append_pred(y_pred_array, bounds_true) # add predictions to self.df
         return True
@@ -254,6 +254,7 @@ class MethodTest:
                 self.df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
                 self.df_cntr += 1 # update counter
 
+
 if __name__ == '__main__':
     
     if len(sys.argv) == 2:
@@ -261,7 +262,15 @@ if __name__ == '__main__':
         obj.multi_folder() # get catalogue for multiple folders
     else:
         print('Please provide parent directory')
-   
+
+# TESTING CODE #
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
 # obj = MethodTest(main_path) # instantiate and pass main path
 # obj.multi_folder() # get catalogue for multiple folders
+
+
+
+
+
+
+
