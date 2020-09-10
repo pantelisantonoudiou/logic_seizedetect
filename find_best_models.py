@@ -54,7 +54,7 @@ class MethodTest:
         self.feature_labels = np.array(self.feature_labels)
         
         # get df from training and empty metrics
-        self.df = pd.read_csv(os.path.join(Path(main_path).parents[0], 'all_method_metrics_train.csv'))
+        self.df = pd.read_csv(os.path.join(Path(main_path).parents[0], 'methods_table.csv'))
         self.df[['total','detected','detected_ratio','false_positives']] = 0
         
         # get parameter index
