@@ -84,6 +84,19 @@ class UserVerify:
         self.enabled = np.array(df.loc[0][df.columns.str.contains('Enabled')])
         
     def get_feature_pred(self, file_id):
+        """
+        get_feature_pred(self, file_id)
+
+        Parameters
+        ----------
+        file_id : Str
+
+        Returns
+        -------
+        data : 3d Numpy Array (1D = segments, 2D = time, 3D = channel)
+        bounds_pred : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures)
+
+        """
         
         # Define parameter list
         param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
@@ -98,23 +111,24 @@ class UserVerify:
         x_data = StandardScaler().fit_transform(x_data) # Normalize data
         
         # Get predictions
-        thresh = (np.mean(x_data) + self.thresh * np.std(x_data)) # get threshold vector
-        y_pred_array = x_data > thresh # get predictions across all features
-        y_pred = y_pred_array * self.weights * self.enabled # get predictions based on weights and selected features
+        thresh = (np.mean(x_data) + self.thresh * np.std(x_data))   # get threshold vector
+        y_pred_array = x_data > thresh                              # get predictions across all features
+        y_pred = y_pred_array * self.weights * self.enabled         # get predictions based on weights and selected features
         y_pred = np.sum(y_pred, axis=1) / np.sum(self.weights * self.enabled) # normalize to weights and selected features
-        y_pred = y_pred > 0.5 # get popular vote
-        bounds_pred = find_szr_idx(y_pred, np.array([0,1])) # get predicted seizure index
+        y_pred = y_pred > 0.5                                       # get popular vote
+        bounds_pred = find_szr_idx(y_pred, np.array([0,1]))         # get predicted seizure index
         
         # Merge seizures close together
         if bounds_pred.shape[0] > 0:
             # get bounds of predicted sezures
             bounds_pred = merge_close(bounds_pred, merge_margin = 5)
-            
-            
         
-        return data, x_data
+        # Remove seizures where a feature (power or line length) is not higher than preceeding region
+        bounds_pred = self.refine_based_on_surround(data[:,:,0], bounds_pred)    
+        
+        return data, bounds_pred
          
-    def power_thresh(self,data,idx):
+    def refine_based_on_surround (self, data, idx):
         """
         power_thresh(self,data,idx)
 
@@ -189,37 +203,21 @@ class UserVerify:
 
         Returns
         -------
-        data : Numpy Array (3d, rows = segments, columns = time, 3dim = channel)
-        idx_bounds : 2D Numpy Array (start and end points of detected seizures)
+        data : 3d Numpy Array (1D = segments, 2D = time, 3D = channel)
+        idx_bounds : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures)
 
         """
         
         print('File being analyzed: ', file_id)
-        
-        # add channgel selection if multi 
-        chan_no = 0 # get channel number    
-        
-        # get data and predictions
-        data, idx_bounds = get_feature_pred(self, file_id)
-        
-        # remove discountious seizure segments
-        idx_bounds = find_szr_idx(rawpred, self.szr_segments)
 
-        # load voltage data
-        filepath = os.path.join(self.rawdata_path, filename.replace('.csv','.h5'))
-        f = tables.open_file(filepath, mode='r')
-        data = f.root.data[:]
-        f.close()
-        
-        # Remove segments that do not exceed power threshold, based on ch1-BLA
-        idx_bounds = self.power_thresh(data[:,:,chan_no],idx_bounds)
+        # get data and predictions
+        data, idx_bounds = self.get_feature_pred(file_id)
  
         # check whether to continue
         print('>>>>',idx_bounds.shape[0] ,'seizures detected')
-        return data,idx_bounds
         
-        # # plot seizures
-        # self.plot_szrs(data,idx_bounds)
+        return data,idx_bounds
+
         
    
         
@@ -230,43 +228,43 @@ if __name__ == '__main__' :
     obj = UserVerify(input_path)
     data, idx_bounds = obj.main_func(file_id)
     
-    if idx_bounds is not False and execute == 1:
+    # if idx_bounds is not False and execute == 1:
         
-        if idx_bounds.shape[0] == 0: # check for zero seizures
-            obj.save_emptyidx(data.shape[0])
+    #     if idx_bounds.shape[0] == 0: # check for zero seizures
+    #         obj.save_emptyidx(data.shape[0])
             
-        else: # otherwise proceed with gui creation
+    #     else: # otherwise proceed with gui creation
     
-            # get gui
-            from verify_gui import matplotGui,fig,ax
-            fig.suptitle('To Submit Press Enter; To Select Drag Mouse Pointer : '+file_id, fontsize=12)
+    #         # get gui
+    #         from verify_gui import matplotGui,fig,ax
+    #         fig.suptitle('To Submit Press Enter; To Select Drag Mouse Pointer : '+file_id, fontsize=12)
                
-            # init object
-            callback = matplotGui(data,idx_bounds,obj,file_id)
+    #         # init object
+    #         callback = matplotGui(data,idx_bounds,obj,file_id)
             
-            # add buttons
-            axprev = plt.axes([0.625, 0.05, 0.13, 0.075]) # previous
-            bprev = Button(axprev, 'Previous: <')
-            bprev.on_clicked(callback.previous)
-            axnext = plt.axes([0.765, 0.05, 0.13, 0.075]) # next
-            bnext = Button(axnext, 'Next: >')
-            bnext.on_clicked(callback.forward)
-            axaccept = plt.axes([0.125, 0.05, 0.13, 0.075]) # accept
-            baccept = Button(axaccept, 'Accept: y')
-            baccept.on_clicked(callback.accept)
-            axreject = plt.axes([0.265, 0.05, 0.13, 0.075]) # reject
-            breject = Button(axreject, 'Reject: n')
-            breject.on_clicked(callback.reject)
-            axbox = plt.axes([0.5, 0.055, 0.05, 0.05]) # seizure number
-            text_box = TextBox(axbox, 'Szr #', initial='0')
-            text_box.on_submit(callback.submit)
+    #         # add buttons
+    #         axprev = plt.axes([0.625, 0.05, 0.13, 0.075]) # previous
+    #         bprev = Button(axprev, 'Previous: <')
+    #         bprev.on_clicked(callback.previous)
+    #         axnext = plt.axes([0.765, 0.05, 0.13, 0.075]) # next
+    #         bnext = Button(axnext, 'Next: >')
+    #         bnext.on_clicked(callback.forward)
+    #         axaccept = plt.axes([0.125, 0.05, 0.13, 0.075]) # accept
+    #         baccept = Button(axaccept, 'Accept: y')
+    #         baccept.on_clicked(callback.accept)
+    #         axreject = plt.axes([0.265, 0.05, 0.13, 0.075]) # reject
+    #         breject = Button(axreject, 'Reject: n')
+    #         breject.on_clicked(callback.reject)
+    #         axbox = plt.axes([0.5, 0.055, 0.05, 0.05]) # seizure number
+    #         text_box = TextBox(axbox, 'Szr #', initial='0')
+    #         text_box.on_submit(callback.submit)
             
-            # add key press
-            idx_out = fig.canvas.mpl_connect('key_press_event', callback.keypress)
+    #         # add key press
+    #         idx_out = fig.canvas.mpl_connect('key_press_event', callback.keypress)
             
-            # set useblit True on gtkagg for enhanced performance
-            span = SpanSelector(ax, callback.onselect, 'horizontal', useblit=True,
-               rectprops=dict(alpha=0.5, facecolor='red'))
+    #         # set useblit True on gtkagg for enhanced performance
+    #         span = SpanSelector(ax, callback.onselect, 'horizontal', useblit=True,
+    #            rectprops=dict(alpha=0.5, facecolor='red'))
     
     
 
