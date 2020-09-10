@@ -11,9 +11,9 @@ import pandas as pd
 import numpy as np
 
 # path to comapre files
-paths = [
-    r'C:\Users\Pante\Desktop\seizure_data_tb\train\model_performance\all_method_metrics_train_1.csv',
-    r'C:\Users\Pante\Desktop\seizure_data_tb\test\model_performance\best_method_metrics_1.csv',
+paths = [ 
+    'train/model_performance/all_method_metrics_train_1.csv',
+    'test/model_performance/best_method_metrics_1.csv',
          ]
 
 def get_common(main_path, detected_threshold = 0.99, fp_threshold = 700):
@@ -34,13 +34,13 @@ def get_common(main_path, detected_threshold = 0.99, fp_threshold = 700):
     """
     
     # Get all features 
-    df = pd.read_csv(paths[0]) # read df
+    df = pd.read_csv(os.path.join(main_path, paths[0])) # read df
     idx = np.zeros((len(df),len(paths)), dtype=bool) # create index
     
     for i in range(len(paths)): # iterate through paths
         
         # load dataframe
-        df = pd.read_csv(paths[i])
+        df = pd.read_csv(os.path.join(main_path, paths[i]))
         
         # get index
         idx[:,i] = np.array((df['detected_ratio'] > detected_threshold) & (df['false_positives'] < fp_threshold))
