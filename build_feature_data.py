@@ -39,7 +39,7 @@ def get_data(main_path, exp_path, ch_num = [0,1] , inner_path=[], load_y = True)
     
     y_data = []
     if load_y == True: # get ground truth labels
-        y_data = np.loadtxt(os.path.join(main_path,inner_path['pred_path'], exp_path+'.csv'), delimiter=',', skiprows=0)
+        y_data = np.loadtxt(os.path.join(main_path, inner_path['pred_path'], exp_path+'.csv'), delimiter=',', skiprows=0)
         y_data = y_data.astype(np.bool) # conver to bool
         return data, y_data
     
