@@ -51,7 +51,7 @@ class matplotGui(object):
         self.idx = np.copy(idx_bounds) # original idex
         self.idx_out = np.copy(idx_bounds) # output idex
         self.facearray = ['w']*idx_bounds.shape[0] # color list
-        self.bounds = obj.surround_time # surrounding region in seconds
+        self.bounds = 60 # surrounding region in seconds
         self.win = obj.win # window (defualt 5 seconds)  
         self.fs = obj.fs # samplin rate
         self.verpred_path = obj.verpred_path
