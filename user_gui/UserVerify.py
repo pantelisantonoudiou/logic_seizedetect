@@ -7,7 +7,7 @@ Created on Mon Apr 13 10:29:00 2020
 
 ## ------>>>>> USER INPUT <<<<<< --------------
 input_path = r'C:\Users\Pante\Desktop\seizure_data_tb\train\3642_3641_3560_3514\filt_data'
-file_id = '071719_3560'
+file_id = '071919_3641'
 ch_list = [0,1] # selected channels
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
@@ -111,7 +111,7 @@ class UserVerify:
         data = get_data(self.gen_path, file_id, ch_num = ch_list, inner_path={'data_path':'filt_data'}, load_y = False)
         
         # Extract features and normalize
-        x_data, labels = get_features_allch(data ,param_list, cross_ch_param_list) # Get features and labels
+        x_data, labels = get_features_allch(data,param_list, cross_ch_param_list) # Get features and labels
         x_data = StandardScaler().fit_transform(x_data) # Normalize data
         
         # Get predictions
@@ -130,12 +130,12 @@ class UserVerify:
         
             # Remove seizures where a feature (line length or power) is not higher than preceeding region
             idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
-            bounds_pred = self.refine_based_on_surround(y_pred_array[:,idx], bounds_pred)    
+            bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)    
         
         return bounds_pred
          
     
-    def refine_based_on_surround (self, feature, idx):
+    def refine_based_on_surround(self, feature, idx):
         """
         refine_based_on_surround(self,data,idx)
 
@@ -152,7 +152,7 @@ class UserVerify:
             Only seizure segments that obey threshold condition are kept.
 
         """
-        
+
         # Set Parameters
         logic_idx = np.zeros(idx.shape[0], dtype=int) # pre-allocate logic vector
         
@@ -163,7 +163,7 @@ class UserVerify:
             szr = feature[idx[i,0] : idx[i,1]] # seizure segment 
 
             # check if power difference meets threshold
-            cond = ( np.median(szr) / np.median(bef))*100
+            cond = ( np.median(szr) / np.median(bef) )*100
             if cond > 130:
                 logic_idx[i] = 1
         
