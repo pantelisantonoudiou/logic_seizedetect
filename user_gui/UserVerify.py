@@ -7,7 +7,7 @@ Created on Mon Apr 13 10:29:00 2020
 
 ## ------>>>>> USER INPUT <<<<<< --------------
 input_path = r'C:\Users\Pante\Desktop\seizure_data_tb\train\3642_3641_3560_3514\filt_data'
-file_id = '071719_3514'
+file_id = '071719_3560'
 ch_list = [0,1] # selected channels
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
@@ -129,8 +129,8 @@ class UserVerify:
             bounds_pred = merge_close(bounds_pred, merge_margin = 5)
         
             # Remove seizures where a feature (line length or power) is not higher than preceeding region
-            # idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
-            # bounds_pred = self.refine_based_on_surround(y_pred_array[:,idx], bounds_pred)    
+            idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
+            bounds_pred = self.refine_based_on_surround(y_pred_array[:,idx], bounds_pred)    
         
         return bounds_pred
          
@@ -154,19 +154,16 @@ class UserVerify:
         """
         
         # Set Parameters
-
-        outbins = round(self.surround_time/self.win) # convert bounds to bins
         logic_idx = np.zeros(idx.shape[0], dtype=int) # pre-allocate logic vector
         
         for i in range(idx.shape[0]): # iterate through seizure segments
             
             # get seizure and surrounding segments
-            bef = data[idx[i,0] - outbins : idx[i,0] ,:] # segment before seizure
-            szr = data[idx[i,0] : idx[i,1],:] # seizure segment 
+            bef = feature[idx[i,0] - round(90/self.win) : idx[i,0] - round(30/self.win)] # segment before seizure
+            szr = feature[idx[i,0] : idx[i,1]] # seizure segment 
 
-            
             # check if power difference meets threshold
-            cond = (np.sum(szr) / np.sum(bef))*100
+            cond = ( np.median(szr) / np.median(bef))*100
             if cond > 130:
                 logic_idx[i] = 1
         
@@ -247,7 +244,7 @@ if __name__ == '__main__' :
             fig.suptitle('To Submit Press Enter; To Select Drag Mouse Pointer : '+file_id, fontsize=12)
                
             # init object
-            callback = matplotGui(data,idx_bounds,obj,file_id)
+            callback = matplotGui(data,idx_bounds,obj,file_id+'.csv')
             
             # add buttons
             axprev = plt.axes([0.625, 0.05, 0.13, 0.075]) # previous
