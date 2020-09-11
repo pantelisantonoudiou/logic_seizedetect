@@ -6,8 +6,8 @@ Created on Mon Apr 13 10:29:00 2020
 """
 
 ## ------>>>>> USER INPUT <<<<<< --------------
-input_path = r'C:\Users\Pante\Desktop\seizure_data_tb\train\3642_3641_3560_3514\filt_data'
-file_id = '071919_3641'
+input_path = r'W:\Maguire Lab\Trina\2020\07- June\5221_5222_5223_5162\filt_data'
+file_id = '062919_5221a.csv'
 ch_list = [0,1] # selected channels
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
@@ -209,10 +209,10 @@ class UserVerify:
         print('File being analyzed: ', file_id)
 
         # get data and predictions
-        idx_bounds = self.get_feature_pred(file_id)
+        idx_bounds = self.get_feature_pred(file_id.replace('.csv',''))
            
         # load raw data for visualization
-        filepath = os.path.join(self.gen_path, 'reorganized_data' ,filename + '.h5')
+        filepath = os.path.join(self.gen_path, 'reorganized_data' ,filename.replace('.csv','.h5') )
         f = tables.open_file(filepath, mode='r')
         data = f.root.data[:]
         f.close()
@@ -244,7 +244,7 @@ if __name__ == '__main__' :
             fig.suptitle('To Submit Press Enter; To Select Drag Mouse Pointer : '+file_id, fontsize=12)
                
             # init object
-            callback = matplotGui(data,idx_bounds,obj,file_id+'.csv')
+            callback = matplotGui(data,idx_bounds,obj, file_id)
             
             # add buttons
             axprev = plt.axes([0.625, 0.05, 0.13, 0.075]) # previous
