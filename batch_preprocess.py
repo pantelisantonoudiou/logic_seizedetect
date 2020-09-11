@@ -14,6 +14,7 @@ from build_feature_data import get_data, save_data
 
 def batch_clean_filt(main_path, num_channels = [0,1]):
     
+    read_dir = 'reorganized_data'
     filt_dir = 'filt_data' # name filt directory 
     
     # create path if it doesn't exist
@@ -22,7 +23,7 @@ def batch_clean_filt(main_path, num_channels = [0,1]):
         os.mkdir(save_dir)
     
     # get file list 
-    ver_path = os.path.join(main_path, 'verified_predictions_pantelis')
+    ver_path = os.path.join(main_path, 'verified_predictions')
     filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
@@ -31,7 +32,7 @@ def batch_clean_filt(main_path, num_channels = [0,1]):
     for i in tqdm(range(0, len(filelist))): # loop through experiments 
     
         # Get data and true labels
-        data, y_true = get_data(main_path,filelist[i],ch_num = num_channels)
+        data = get_data(main_path, filelist[i], ch_num = num_channels, inner_path={'data_path':read_dir}, load_y = False)
         
         # Clean and filter data
         data = preprocess_data(data,  clean = True, filt = True, verbose = 0)
