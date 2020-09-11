@@ -29,11 +29,13 @@ for i in range(0,len(paths)):
     df = pd.read_csv(paths[i])
     ax1.plot(df['detected_ratio'])
     ax2.plot(df['false_positives'])
-    idx[:,i] = np.array((df['detected_ratio'] > 0.99) & (df['false_positives'] < 1000))
+    idx[:,i] = np.array((df['detected_ratio'] > 0.99) & (df['false_positives'] < 700))
      
 
 # get common index    
 common_idx = np.where(np.logical_and(idx[:,0], idx[:,1]))[0]
+df_best = df.loc[common_idx]
+
 for i in range(common_idx.shape[0]): 
     enabled_idx = np.array(df.loc[common_idx[i]][col_idx]).astype(bool)
     print(common_idx[i], features[enabled_idx])
@@ -46,4 +48,3 @@ for i in range(0,len(paths)):
     df_list.append(df['false_positives'][common_idx])
     plt.plot(df_list[i])
     
-df_best2 = df.loc[common_idx]
