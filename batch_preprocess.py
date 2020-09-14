@@ -23,8 +23,8 @@ def batch_clean_filt(main_path, num_channels = [0,1]):
         os.mkdir(save_dir)
     
     # get file list 
-    ver_path = os.path.join(main_path, 'verified_predictions')
-    filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
+    ver_path = os.path.join(main_path, read_dir)
+    filelist = list(filter(lambda k: '.h5' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
     print(len(filelist), 'files will be filtered.')
