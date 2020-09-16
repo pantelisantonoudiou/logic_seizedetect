@@ -111,8 +111,7 @@ class lab2mat:
                 
                 print(cntr, 'of',total ,'Experiments Saved')
                 cntr += 1 # update counter
-    
-    
+
     # save in chunks per animal
     def save_chunks(self,file_obj,filename,ch_list):
         """
@@ -146,44 +145,21 @@ class lab2mat:
                 print(block, ' is corrupted')
                 continue
             
-            length = chobj.n_samples[block] # get block length in samples
-            win_samp = self.win * self.fs # get window size in samples
-            mat_shape = [0,0]
-            mat_shape[0] = floor(length/win_samp) # get number of rows
-            mat_shape[1] = round(win_samp / self.down_factor) # get number of columns
-            idx = rem_array(0, mat_shape[0], self.chunksize) # get index
-            
+            # get comments
+            user_coms = file_obj.records[block].comments
             
             ### SAVING PARAMETERS ##
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
             full_path = os.path.join(self.save_path, file_id) # get full save path
-            fsave = tables.open_file(full_path, mode='w') # open tables object
-            atom = tables.Float64Atom() # declare data type     
-            ds = fsave.create_earray(fsave.root, 'data',atom, # create data store 
-                                        [0, mat_shape[1],len(ch_list)], 
-                                        chunkshape = [self.chunksize,mat_shape[1],len(ch_list)])
-            
-            ## Iterate over channel length ##
-            for i in tqdm(range(len(idx)-1), desc = 'Experiment', file=sys.stdout): # loop though index 
-            
-                # preallocate data
-                data = np.zeros([idx[i+1] - idx[i], mat_shape[1], len(ch_list)])
                 
-                for ii in range(len(ch_list)): ## Iterate over all animal channels ##
-                    # get channel obj
-                    chobj = file_obj.channels[ch_list[ii]] 
+            for i in range(len(ch_list)): ## Iterate over all animal channels ##
+                # get channel obj
+                chobj = file_obj.channels[ch_list[ii]] 
                     
-                    # get data per channel
-                    data[:,:,ii] = self.get_filechunks(chobj,block+1,mat_shape[1],idx[i:i+2])
-    
-                # append data to datastore
-                ds.append(data)
-            
-            # print('Total length = ',length)
-            fsave.close() # close table object
-        
-    
 
+    
+    def filter_coms(comments, channel):
+        
         
 
 
