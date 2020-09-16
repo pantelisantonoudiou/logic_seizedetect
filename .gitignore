@@ -5,6 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
+!adi/Release/_adi_cffi.cp36-win_amd64.lib
+!adi/ADIDatIOWin64.dll
+!adi/ADIDatIOWin64.lib
 
 # Distribution / packaging
 .Python
