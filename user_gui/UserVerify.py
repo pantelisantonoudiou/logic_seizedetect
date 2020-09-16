@@ -7,7 +7,7 @@ Created on Mon Apr 13 10:29:00 2020
 
 ## ------>>>>> USER INPUT <<<<<< --------------
 input_path = r'W:\Maguire Lab\Trina\2020\07- June\5221_5222_5223_5162\filt_data'
-file_id = '062919_5221a.csv'
+file_id = '070920_5162a.csv' # 5221 5222 5223 5162
 ch_list = [0,1] # selected channels
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
