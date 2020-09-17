@@ -59,13 +59,16 @@ class SzrsFromLab:
         # load object properties as dict
         obj_props = lab2mat.load(os.path.join(self.gen_path, 'organized.json'))
         
-        # get info
+        # get info from analyzed object
         self.ch_struct = obj_props['ch_struct']
+        self.file_ext = obj_props['file_ext']
         self.win = obj_props['win']
         self.fs = obj_props['fs']
         self.down_factor = obj_props['down_factor'] # downsample factor
         self.animal_ids = obj_props['animal_ids'] # animal IDs in folder
-        self.filelist = obj_props['filelist']
+        
+        # get file list
+        self.filelist = list(filter(lambda k: self.file_ext in k, os.listdir(self.load_path)))
         
         # display instance attributes
         pprint(vars(self))
@@ -81,11 +84,12 @@ class SzrsFromLab:
         total = len(self.filelist)*len(self.animal_ids)       
         
         cntr = 1 # init counter
-        # loop through labchart files (multilple animals per file)
+        
         
         # create save list
         self.save_list = []
-        for i in range(len(self.filelist)):
+        
+        for i in range(len(self.filelist)): # loop through labchart files (multilple animals per file)
             
             # get adi file obj
             f = adi.read_file(os.path.join(self.load_path, self.filelist[i])) 
@@ -101,7 +105,8 @@ class SzrsFromLab:
             for ii in range(len(ch_list)): # iterate through animals
          
                 # extract and save comments
-                self.extact_comments(f,self.animal_ids[ii],ch_list[ii])
+                filename =  self.filelist[i].replace(self.file_ext, "") + '_' + self.animal_ids[ii]
+                self.extact_comments(f,filename,ch_list[ii])
                 
                 print(cntr, 'of',total ,'Experiments Saved')
                 cntr += 1 # update counter
@@ -109,6 +114,7 @@ class SzrsFromLab:
         # convert to dataframe and save to csv
         df = pd.DataFrame(self.save_list)
         df.to_csv(os.path.join(self.gen_path,'Extracted_seizures.csv'), header = False, index = False)
+        print('--------------- Seizure comments extracted ---------------')
         
 
     # save in chunks per animal
@@ -129,7 +135,7 @@ class SzrsFromLab:
         None.
 
         """
-        breakpoint()
+        
         ch_list = ch_list - 1 # convert channel to python format
         all_blocks = len(file_obj.channels[0].n_samples) # get all blocks
         
@@ -146,18 +152,25 @@ class SzrsFromLab:
             
             # get file name
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
-
-            # get comments
+                
+            # get comments from block
             user_coms = file_obj.records[block].comments
             
             # filter coms based on channel id
             coms, com_idx = SzrsFromLab.filter_coms(user_coms, ch_list[0])
+            
+            if len(coms)>0:      
+                # get szr index comments 
+                coms = np.core.defchararray.lower(coms) # make lower case
+                szr_idx = np.flatnonzero(np.core.defchararray.find(coms,'ictal')!=-1)
+                com_idx = list(com_idx[szr_idx])
                 
-            # get szr index comments    
-            szr_idx = list(np.flatnonzero(np.core.defchararray.find(coms,'ictal')!=-1))
+            else:
+                com_idx = [] # create empty list
             
             # append to seizure list
-            self.save_list.append(szr_idx.insert(0,file_id))        
+            com_idx.insert(0,file_id) # add file id
+            self.save_list.append(com_idx)        
 
     @staticmethod
     def filter_coms(comments, channel_id):
@@ -171,7 +184,7 @@ class SzrsFromLab:
 
         Returns
         -------
-        coms: np array.
+        coms: np array, comment
         com_time : ndarray, comment times.
 
         """
@@ -182,12 +195,13 @@ class SzrsFromLab:
             if c.channel_ == channel_id: # if comment channel matches channel number
                 coms = np.append(coms, c.text) # append com
                 com_time = np.append(com_time, c.time) # append com time
-                
-        return np.core.defchararray.lower(coms), com_time
+            
+        return coms, com_time
         
 
 # Execute if module runs as main program
 if __name__ == '__main__':
+    
     # create instance
     obj = SzrsFromLab(input_path)
    
