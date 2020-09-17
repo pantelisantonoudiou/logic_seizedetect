@@ -19,6 +19,7 @@ input_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220\raw_data'
 import adi, os, sys
 from pprint import pprint
 import numpy as np
+import pandas as pd
 from multich_dataPrep import lab2mat
 from string import ascii_lowercase
 from path_helper import sep_dir
@@ -73,20 +74,17 @@ class SzrsFromLab:
     # main methods (iterate over files)
     def mainfunc(self):
         """
-
+        main function that iterates over animals, extract comments, and
+        saves them in a .csv file for human readable format
         """
-        
-        # make path
-        # if os.path.exists(self.save_path) is False:
-        #     os.mkdir(self.save_path)
-        
         # init progress bar
         total = len(self.filelist)*len(self.animal_ids)       
         
         cntr = 1 # init counter
         # loop through labchart files (multilple animals per file)
         
-        self.df = pd.DataFrame()
+        # create save list
+        self.save_list = []
         for i in range(len(self.filelist)):
             
             # get adi file obj
@@ -96,22 +94,27 @@ class SzrsFromLab:
             ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
             ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
             
-            
+            # error check for animals vs ch_list for correct allocation of channels
             if len(ch_list) - len(self.animal_ids) != 0:
                 print('Animal numbers do not match channel structure')
                 
             for ii in range(len(ch_list)): # iterate through animals
          
                 # extract and save comments
-                self.save_chunks(f,self.animal_ids[ii],ch_list[ii])
+                self.extact_comments(f,self.animal_ids[ii],ch_list[ii])
                 
                 print(cntr, 'of',total ,'Experiments Saved')
                 cntr += 1 # update counter
+                
+        # convert to dataframe and save to csv
+        df = pd.DataFrame(self.save_list)
+        df.to_csv(os.path.join(self.gen_path,'Extracted_seizures.csv'), header = False, index = False)
+        
 
     # save in chunks per animal
-    def save_chunks(self,file_obj,filename,ch_list):
+    def extact_comments(self, file_obj, filename, ch_list):
         """
-        save_chunks(self,file_obj,filename,ch_list)
+        extact_comments(self, file_obj, filename, ch_list)
 
         Parameters
         ----------
@@ -141,10 +144,9 @@ class SzrsFromLab:
                 print(block, ' is corrupted')
                 continue
             
-            ### SAVING PARAMETERS ##
+            # get file name
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
-            full_path = os.path.join(self.save_path, file_id) # get full save path
-            
+
             # get comments
             user_coms = file_obj.records[block].comments
             
@@ -152,8 +154,10 @@ class SzrsFromLab:
             coms, com_idx = SzrsFromLab.filter_coms(user_coms, ch_list[0])
                 
             # get szr index comments    
-            szr_idx = np.flatnonzero(np.core.defchararray.find(coms,'ictal')!=-1)
-                    
+            szr_idx = list(np.flatnonzero(np.core.defchararray.find(coms,'ictal')!=-1))
+            
+            # append to seizure list
+            self.save_list.append(szr_idx.insert(0,file_id))        
 
     @staticmethod
     def filter_coms(comments, channel_id):
@@ -187,11 +191,9 @@ if __name__ == '__main__':
     # create instance
     obj = SzrsFromLab(input_path)
    
-#    # run analysis
-#    obj.mainfunc()
+    # run analysis
+    obj.mainfunc()
    
-#    # save attributes as dictionary        
-#    obj.save(os.path.join(obj.gen_path, 'organized.json'))
       
 
 
