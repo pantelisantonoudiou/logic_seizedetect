@@ -85,6 +85,8 @@ class SzrsFromLab:
         
         cntr = 1 # init counter
         # loop through labchart files (multilple animals per file)
+        
+        self.df = pd.DataFrame()
         for i in range(len(self.filelist)):
             
             # get adi file obj
@@ -179,8 +181,6 @@ class SzrsFromLab:
                 
         return np.core.defchararray.lower(coms), com_time
         
-        
-
 
 # Execute if module runs as main program
 if __name__ == '__main__':
