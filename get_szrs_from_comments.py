@@ -16,12 +16,12 @@ input_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220\raw_data'
 ### ------------------------------------------------------------------------###
 
 ### ------------------------ IMPORTS -------------------------------------- ###
-import adi,os,sys,tables,json
-from tqdm import tqdm
+import adi, os, sys
+from pprint import pprint
 import numpy as np
 from multich_dataPrep import lab2mat
 from string import ascii_lowercase
-from path_helper import get_dir,sep_dir,rem_array
+from path_helper import sep_dir
 ### ------------------------------------------------------------------------###
 
 
@@ -35,10 +35,8 @@ class SzrsFromLab:
     
     -> __init__: constructor to get instance attributes
     -> mainfunc: function that iterates over labchart files
-    -> save_chunks: save all channels in one animal in chuncks
-    -> get_filechunks: get file chunk
-    -> save: save object properties as dict (json format)
-    -> load: load object properties from dict (stored in json format)
+    -> extract_comments: get comments for all blocks of each animal
+    -> filter_coms: Static, filter comments based on channel ID (eg. 1,10)
     """
    
     # class constructor (load_path retrieval)
@@ -67,6 +65,10 @@ class SzrsFromLab:
         self.down_factor = obj_props['down_factor'] # downsample factor
         self.animal_ids = obj_props['animal_ids'] # animal IDs in folder
         self.filelist = obj_props['filelist']
+        
+        # display instance attributes
+        pprint(vars(self))
+    
   
     # main methods (iterate over files)
     def mainfunc(self):
@@ -132,27 +134,26 @@ class SzrsFromLab:
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
-                test = chobj.get_data(block+1,start_sample=0,stop_sample=1000)
+                chobj.get_data(block+1,start_sample=0,stop_sample=1000)
             except:
                 print(block, ' is corrupted')
                 continue
             
-            # get comments
-            user_coms = file_obj.records[block].comments
-            
-            
             ### SAVING PARAMETERS ##
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
             full_path = os.path.join(self.save_path, file_id) # get full save path
+            
+            # get comments
+            user_coms = file_obj.records[block].comments
+            
+            # filter coms based on channel id
+            coms, com_idx = SzrsFromLab.filter_coms(user_coms, ch_list[0])
                 
-            for i in range(len(ch_list)): ## Iterate over all animal channels ##
-                # get channel obj
-                chobj = file_obj.channels[ch_list[ii]] 
-                # filter coms
-                coms,com_idx = filter_coms(user_coms, ch_list[0])
+            # get szr index comments    
+            szr_idx = np.flatnonzero(np.core.defchararray.find(coms,'ictal')!=-1)
                     
 
-    
+    @staticmethod
     def filter_coms(comments, channel_id):
         """
         filter_coms(comments, channel_id)
@@ -181,10 +182,10 @@ class SzrsFromLab:
         
 
 
-# # Execute if module runs as main program
-# if __name__ == '__main__':
-#    # create instance
-#    obj = SzrsFromLab(input_path)
+# Execute if module runs as main program
+if __name__ == '__main__':
+    # create instance
+    obj = SzrsFromLab(input_path)
    
 #    # run analysis
 #    obj.mainfunc()
