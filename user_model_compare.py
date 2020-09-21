@@ -9,12 +9,33 @@ import os
 import numpy as np
 import pandas as pd
 
+# get main path
 main_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220'
 
-# get user seizures
-df = pd.read_csv(os.path.join(main_path, 'Extracted_seizures.csv'), header = None)
 
+def main_func(main_path):
+    
+    # get user seizures
+    df = pd.read_csv(os.path.join(main_path, 'Extracted_seizures.csv'), header = None)
+    
+    # get verified predictions file list
+    filelist = list(filter(lambda k: '.csv' in k, os.listdir(os.path.join(main_path, 'verified_predictions_pantelis'))))
+    
+    if len(df) != len(filelist): # file check
+        print('Warning: length of extracted seizures does not match list of verified predictions!')
+    
+    for i in range(len(filelist)):
+        
+        # get user scored seizured index
+        idx = get_szr_index(df, filelist[i].replace('.csv',''))
+        
+        # load predictions
+        
+        
+        
 
+    
+    
 def get_szr_index(df, exp_id):
     """
     idx = get_szr_index(df, exp_id)
@@ -44,4 +65,28 @@ def get_szr_index(df, exp_id):
     return idx
     
     
-idx = get_szr_index(df, '063020_5143a.h5')
+# Execute if module runs as main program
+if __name__ == '__main__':
+    main_func(main_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
