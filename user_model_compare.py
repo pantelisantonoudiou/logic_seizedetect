@@ -8,6 +8,7 @@ Created on Fri Sep 18 13:58:54 2020
 import os
 import numpy as np
 import pandas as pd
+from array_helper import find_szr_idx, merge_close
 
 # get main path
 main_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220'
@@ -19,7 +20,8 @@ def main_func(main_path):
     df = pd.read_csv(os.path.join(main_path, 'Extracted_seizures.csv'), header = None)
     
     # get verified predictions file list
-    filelist = list(filter(lambda k: '.csv' in k, os.listdir(os.path.join(main_path, 'verified_predictions_pantelis'))))
+    ver_path = os.path.join(main_path, 'verified_predictions_pantelis')
+    filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path)))
     
     if len(df) != len(filelist): # file check
         print('Warning: length of extracted seizures does not match list of verified predictions!')
@@ -30,11 +32,16 @@ def main_func(main_path):
         idx = get_szr_index(df, filelist[i].replace('.csv',''))
         
         # load predictions
+        rawpred = np.loadtxt(os.path.join(ver_path, filelist[i]), delimiter=',', skiprows=1)
         
-        
-        
+        if np.sum(rawpred)>0:
+            breakpoint()
+            # get index bounds of semi-manual detected seizures
+            bounds_pred = find_szr_idx(rawpred, [0,1]) ##### - ERROR !!!!!!!!!!!!!!!!!
 
-    
+            print(bounds_pred)
+        
+          
     
 def get_szr_index(df, exp_id):
     """
