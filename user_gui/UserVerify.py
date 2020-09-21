@@ -6,8 +6,8 @@ Created on Mon Apr 13 10:29:00 2020
 """
 
 ## ------>>>>> USER INPUT <<<<<< --------------
-input_path = r'W:\Maguire Lab\Trina\2020\07- June\5221_5222_5223_5162\filt_data'
-file_id = '070920_5162a.csv' # 5221 5222 5223 5162
+input_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220\filt_data'
+file_id = '071220_5160a.csv' # 5221 5222 5223 5162
 ch_list = [0,1] # selected channels
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
@@ -127,7 +127,7 @@ class UserVerify:
             
             # Merge seizures close together
             bounds_pred = merge_close(bounds_pred, merge_margin = 5)
-        
+            
             # Remove seizures where a feature (line length or power) is not higher than preceeding region
             idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
             bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)    
@@ -155,15 +155,15 @@ class UserVerify:
 
         # Set Parameters
         logic_idx = np.zeros(idx.shape[0], dtype=int) # pre-allocate logic vector
-        
+
         for i in range(idx.shape[0]): # iterate through seizure segments
             
             # get seizure and surrounding segments
-            bef = feature[idx[i,0] - round(90/self.win) : idx[i,0] - round(30/self.win)] # segment before seizure
-            szr = feature[idx[i,0] : idx[i,1]] # seizure segment 
+            bef = feature[idx[i,0] - round(90/self.win) : idx[i,0] - round(30/self.win) + 1] # segment before seizure
+            szr = feature[idx[i,0] : idx[i,1]+1] # seizure segment 
 
             # check if power difference meets threshold
-            cond = ( np.median(szr) / np.median(bef) )*100
+            cond = ( np.abs(np.median(szr)) / np.abs(np.median(bef)) )*100
             if cond > 130:
                 logic_idx[i] = 1
         
