@@ -26,7 +26,7 @@ from path_helper import get_dir,sep_dir,rem_array
 
 ## print animal to be analyzed ##
 
-# CLASS FOR CONERTING LABCHART TO H5 FILES
+# CLASS FOR CONVERTING LABCHART TO H5 FILES
 class lab2mat:
     """
     Class for convering labchart files to H5 format
@@ -50,8 +50,7 @@ class lab2mat:
 
         Parameters
         ----------
-        load_path : STRING
-            PATH.
+        load_path : Str
 
         """
         # Declare instance properties
