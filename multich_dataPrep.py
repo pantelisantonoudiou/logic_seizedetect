@@ -210,11 +210,9 @@ class lab2mat:
         Parameters
         ----------
         chobj : ADI CHANNEL OBJECT
-            DESCRIPTION.
-        block : INT
-            Block number of labchart file.
-        cols : INT
-            number of columns.
+ 
+        block : INT, Block number of labchart file.
+        cols : INT, number of columns.
         idx : TWO ELEMENT NP VECTOR- INT
             start and stop index in window blocks.
 

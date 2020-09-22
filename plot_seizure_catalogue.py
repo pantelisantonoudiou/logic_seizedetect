@@ -40,9 +40,9 @@ import seaborn as sns
     
 #     #plot
 #     plt.figure()
-#     sns.boxplot(data= data)
-#     plt.xlabel('Time (seconds)')
-#     plt.title(filelist[i])
+#     g = sns.boxplot(data= data)
+#     g.ax.xlabel('Time (seconds)')
+#     g.ax.title(filelist[i])
  
 
 # ### #2 probability of a seizure being smaller than surrounding regions
