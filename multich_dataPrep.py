@@ -159,7 +159,7 @@ class lab2mat:
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
-                test = chobj.get_data(block+1,start_sample=0,stop_sample=1000)
+                chobj.get_data(block+1,start_sample=0,stop_sample=1000)
             except:
                 print(block, ' is corrupted')
                 continue
@@ -218,7 +218,6 @@ class lab2mat:
         Returns
         -------
         data : numpy array
-            DESCRIPTION.
 
         """
         
