@@ -49,43 +49,65 @@ class ErrorCheck:
         self.fs = round(f.channels[0].fs[0])
         self.down_factor = round(self.fs/self.down_factor)
         
-
-def file_check(self):
-    """
-
-    Returns
-    -------
-    None.
-
-    """
-    
-    # loop through labchart files (multilple animals per file)
-    for i in range(len(self.filelist)):
         
-        # get adi file obj
-        f = adi.read_file(os.path.join(self.load_path, self.filelist[i])) 
+    def main_func(self):
         
-        # get channel list
-        ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
-        ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
+       
+        print('-------------- Testing file read -------------------')
+         # check that all blocks can be read or skipped succesfully
+        success = self.file_check(self.test_files)
+        if success is True:
+            print('Files and blocks opened/skipped successfully.\n')
+        print('--------------------------------------------------\n')
         
-        if len(ch_list) - len(self.animal_ids) != 0:
-            print('Animal numbers do not match channel structure')
-            
-        for ii in range(len(ch_list)): # iterate through animals
-            
-            # get exp name
-            filename = self.filelist[i].replace(self.file_ext, "") + '_' + self.animal_ids[ii]
-     
-            # downsample and save in chuncks
-            self.test_files(f,filename,ch_list[ii])
+        print('-------------- Testing full file read -------------------')
+        
+        
+        
+        
+        
 
-    
-    
-    # save in chunks per animal
-    def test_files(self,file_obj,filename,ch_list):
+    def file_check(self, test_func):
         """
-        save_chunks(self,file_obj,filename,ch_list)
+        
+        Parameters
+        ----------
+        test_func, function reference for file testing
+        
+        Returns
+        -------
+        bool, true if operation succesfull 
+    
+        """
+        
+        # loop through labchart files (multilple animals per file)
+        for i in range(len(self.filelist)):
+            
+            # get adi file obj
+            f = adi.read_file(os.path.join(self.load_path, self.filelist[i])) 
+            
+            # get channel list
+            ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
+            ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
+            
+            if len(ch_list) - len(self.animal_ids) != 0:
+                print('Error! Animal numbers do not match channel structure')
+                return False
+                
+            for ii in range(len(ch_list)): # iterate through animals
+                
+                # get exp name
+                filename = self.filelist[i].replace(self.file_ext, "") + '_' + self.animal_ids[ii]
+         
+                # downsample and save in chuncks
+                test_func(f,filename,ch_list[ii])
+                
+        return True
+
+    
+    def test_files(self, file_obj, filename, ch_list):
+        """
+        test_files(self, file_obj, filename, ch_list)
 
         Parameters
         ----------
@@ -110,25 +132,11 @@ def file_check(self):
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
-                test = chobj.get_data(block+1,start_sample=0,stop_sample=1000)
+                chobj.get_data(block+1,start_sample=0,stop_sample=1000)
             except:
-                print(block, ' is corrupted')
+                print(block, 'in', filename, 'is corrupted')
                 continue
 
-
-
-def check_animal_ids(raw_data_path, ch_struct):
-    
-        # get animal directory
-        animal_dir = get_dir(raw_data_path,1)
-        
-        # retreive animal ids
-        animal_ids = animal_dir.split('_')
-        
-        
-        self.filelist = list(filter(lambda k: self.file_ext in k, os.listdir(load_path)))
-        
-        # check if matches channel structure
         
         
         
