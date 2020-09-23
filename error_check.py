@@ -18,7 +18,7 @@ property_dict = {
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
     'new_fs': 100, # new sampling rate
-    'chunksize' : 2000 # number of rows to be read into memory
+    'chunksize' : 2000, # number of rows to be read into memory
                  } 
 
 class ErrorCheck:
@@ -40,7 +40,7 @@ class ErrorCheck:
 
         """
         # Declare instance properties
-        self.raw_data_path = property_dict['raw_data_path']
+        self.raw_data_path = property_dict['raw_data_path'] # raw path
         self.ch_struct = property_dict['ch_struct'] # channel structure
         self.win = property_dict['win'] # channel structure
         self.file_ext = property_dict['file_ext'] # file extension
@@ -56,11 +56,13 @@ class ErrorCheck:
         # Get adi file obj to retrieve settings
         f = adi.read_file(os.path.join(self.raw_data_path, self.filelist[0]))
         
-        # get sampling rate and downsample factor
+        # Get sampling rate and downsample factor
         self.fs = round(f.channels[0].fs[0])
         self.down_factor = round(self.fs/property_dict['new_fs'])
         
     def increase_cntr(self):
+        """
+        """
         self.cntr += 1
            
     def mainfunc(self):
@@ -75,7 +77,7 @@ class ErrorCheck:
        
         print('------------------------- Initiating Error Check -------------------------\n')
        
-        print('---> Step 1 of 2 : Testing file opening ... \n')
+        print('---> Step 1 : Testing file opening ... \n')
         
          # check that all blocks can be read or skipped succesfully
         success = self.file_check(self.test_files)
@@ -83,18 +85,17 @@ class ErrorCheck:
         if success is True:
             print('\n--- >', self.cntr-1, 'files were opened or skipped successfully.\n')
         
-        print('---> Step 2 of 2 : Testing file read ... \n')
+        # print('---> Step 2 : Testing file read ... \n')
+        # # check that files can be read in full
+        # success = self.file_check(self.test_full_read)
+        # if success is True:
+        #     print('\n--- > All files were read successfully.\n')
         
-        # check that files can be read in full
-        success = self.file_check(self.test_full_read)
-        if success is True:
-            print('\n--- > All files were read successfully.\n')
-            
         print('------------------------- Error Check Completed -------------------------\n')
-            
-
+                    
     def file_check(self, test_func):
         """
+        file_check(self, test_func)
         
         Parameters
         ----------
@@ -156,13 +157,17 @@ class ErrorCheck:
         
         for block in range(all_blocks):
             
-            print(self.cntr,'-> Opening block :', block, 'in File:', filename)
+            # print file being analyzed
+            print(self.cntr,'-> Reading from block :', block, 'in File:', filename)
             
             # get first channel (applies across animals channels)
             chobj = file_obj.channels[ch_list[0]] # get channel obj
+            length = chobj.n_samples[block] # get block length in samples
             
             try: # skip corrupted blocks
-                chobj.get_data(block+1, start_sample=0, stop_sample=1000)
+                chobj.get_data(block+1, start_sample=0, stop_sample=1000) # start
+                chobj.get_data(block+1, start_sample=int(length/2), stop_sample=int(length/2)+1000) # middle
+                chobj.get_data(block+1, start_sample=length-1000, stop_sample=length-1) # end
                 self.increase_cntr() # increase object counter
             except:
                 print('Block :', block, 'in File:', filename, 'is corrupted')
@@ -219,7 +224,6 @@ class ErrorCheck:
                 # read channel chunk
                 self.get_filechunks(file_obj.channels[ch_list[0]], block+1, mat_shape[1], idx[i:i+2])
     
-    
     # read labchart segment
     def get_filechunks(self, chobj, block, cols, idx):
         """
@@ -247,8 +251,6 @@ class ErrorCheck:
         # retrieve data
         chobj.get_data(block,start_sample = index[0], stop_sample = index[1])
         
-        
-
 # Execute if module runs as main program
 if __name__ == '__main__':
     
