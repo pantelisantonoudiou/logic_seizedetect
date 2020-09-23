@@ -57,7 +57,7 @@ class lab2mat:
         self.ch_struct = ['vhpc', 'fc', 'emg'] # channel structure
         self.win = 5 # seconds
         self.fs = 0 # sampling rate
-        self.down_factor = 100 # downsample factor
+        self.new_fs = 100 # downsample factor
         self.animal_ids = [] # animal IDs in folder
         self.load_path ='' # full load path
         self.save_path = '' # full save path
@@ -85,7 +85,7 @@ class lab2mat:
         
         # get sampling rate and downsample factor
         self.fs = round(f.channels[0].fs[0])
-        self.down_factor = round(self.fs/self.down_factor)
+        self.down_factor = round(self.fs/self.new_fs)
         
   
     # main methods (iterate over files)
@@ -166,7 +166,7 @@ class lab2mat:
             
             length = chobj.n_samples[block] # get block length in samples
             win_samp = self.win * self.fs # get window size in samples
-            mat_shape = [0,0]
+            mat_shape = [0,0] # init mat shape
             mat_shape[0] = floor(length/win_samp) # get number of rows
             mat_shape[1] = round(win_samp / self.down_factor) # get number of columns
             idx = rem_array(0, mat_shape[0], self.chunksize) # get index

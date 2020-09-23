@@ -17,6 +17,7 @@ property_dict = {
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
+    'new_fs': 100, # new sampling rate
     'chunksize' : 2000 # number of rows to be read into memory
                  } 
 
@@ -57,12 +58,14 @@ class ErrorCheck:
         
         # get sampling rate and downsample factor
         self.fs = round(f.channels[0].fs[0])
-        self.down_factor = round(self.fs/self.down_factor)
+        self.down_factor = round(self.fs/property_dict['new_fs'])
         
-        
-    def main_func(self):
+    def increase_cntr(self):
+        self.cntr += 1
+           
+    def mainfunc(self):
         """
-        main_func(self)
+        mainfunc(self)
 
         Returns
         -------
@@ -70,25 +73,24 @@ class ErrorCheck:
 
         """
        
-        print('-------------- 1/2 -> Testing file read -------------------')
+        print('------------------------- Initiating Error Check -------------------------\n')
+       
+        print('---> Step 1 of 2 : Testing file opening ... \n')
         
          # check that all blocks can be read or skipped succesfully
         success = self.file_check(self.test_files)
         
         if success is True:
-            print('Files and blocks opened/skipped successfully.\n')
-            
-        print('--------------------------------------------------\n')
+            print('\n--- >', self.cntr-1, 'files were opened or skipped successfully.\n')
         
-        
-        print('-------------- 2/2 ->Testing full file read -------------------')
+        print('---> Step 2 of 2 : Testing file read ... \n')
         
         # check that files can be read in full
         success = self.file_check(self.test_full_read)
         if success is True:
-            print('Files read successfully.\n')
+            print('\n--- > All files were read successfully.\n')
             
-        print('-------------Error Check complete---------------------\n')
+        print('------------------------- Error Check Completed -------------------------\n')
             
 
     def file_check(self, test_func):
@@ -100,15 +102,16 @@ class ErrorCheck:
         
         Returns
         -------
-        bool, true if operation succesfull 
+        bool, True if operation succesfull 
     
         """
+        self.cntr = 1 # init file counter
         
         # loop through labchart files (multilple animals per file)
-        for i in  tqdm(range(len(self.filelist)), desc = 'File', file=sys.stdout):
+        for i in  range(len(self.filelist)):
             
             # get adi file obj
-            f = adi.read_file(os.path.join(self.load_path, self.filelist[i])) 
+            f = adi.read_file(os.path.join(self.raw_data_path, self.filelist[i])) 
             
             # get channel list
             ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
@@ -125,7 +128,7 @@ class ErrorCheck:
          
                 # downsample and save in chuncks
                 test_func(f,filename,ch_list[ii])
-                
+ 
         return True
 
     
@@ -153,20 +156,23 @@ class ErrorCheck:
         
         for block in range(all_blocks):
             
+            print(self.cntr,'-> Opening block :', block, 'in File:', filename)
+            
             # get first channel (applies across animals channels)
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
-                chobj.get_data(block+1,start_sample=0,stop_sample=1000)
+                chobj.get_data(block+1, start_sample=0, stop_sample=1000)
+                self.increase_cntr() # increase object counter
             except:
-                print(block, 'in', filename, 'is corrupted')
+                print('Block :', block, 'in File:', filename, 'is corrupted')
                 continue
 
          
     # read full files
-    def test_full_read(self ,file_obj, filename, ch_list):
+    def test_full_read(self, file_obj, filename, ch_list):
         """
-        test_full_read(self ,file_obj, filename, ch_list)
+        test_full_read(self, file_obj, filename, ch_list)
 
         Parameters
         ----------
@@ -187,30 +193,31 @@ class ErrorCheck:
         
         for block in range(all_blocks):
             
+            print(self.cntr,'-> Reading block :', block, 'in File:', filename)
+            
             # get first channel (applies across animals channels)
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
                 chobj.get_data(block+1, start_sample=0, stop_sample=1000)
+                self.increase_cntr() # increase object counter
             except:
-                print(block, 'in', filename, 'is corrupted')
+                print('Block :', block, 'in File:', filename, 'is corrupted')
                 continue
             
             # get channel length parameters and derive number of chuncks
             length = chobj.n_samples[block] # get block length in samples
             win_samp = self.win * self.fs # get window size in samples
-            mat_shape = np.floor(length/win_samp) # get number of rows
-            idx = rem_array(0, mat_shape, self.chunksize) # get index
+            mat_shape = [0,0] # init mat shape
+            mat_shape[0] = int(np.floor(length/win_samp)) # get number of rows
+            mat_shape[1] = round(win_samp / self.down_factor) # get number of columns
+            idx = rem_array(0, mat_shape[0], self.chunksize) # get index
             
             ## Iterate over channel length ##
-            for i in tqdm(range(len(idx)-1), desc = 'Experiment', file=sys.stdout): # loop though index 
+            for i in tqdm(range(len(idx)-1), desc = 'Progress', file=sys.stdout): # loop though index 
 
-                for ii in range(len(ch_list)): ## Iterate over all animal channels ##
-                    # get channel obj
-                    chobj = file_obj.channels[ch_list[ii]] 
-                    
-                    # get data per channel
-                    self.get_filechunks(chobj,block+1,mat_shape[1],idx[i:i+2])
+                # read channel chunk
+                self.get_filechunks(file_obj.channels[ch_list[0]], block+1, mat_shape[1], idx[i:i+2])
     
     
     # read labchart segment
@@ -241,6 +248,41 @@ class ErrorCheck:
         chobj.get_data(block,start_sample = index[0], stop_sample = index[1])
         
         
+
+# Execute if module runs as main program
+if __name__ == '__main__':
+    
+    if len(sys.argv) == 2:
+        
+        # update dict with raw path
+        property_dict['main_path'] = sys.argv[1]
+     
+        # create instance
+        obj = ErrorCheck(property_dict)
+    
+        # run analysis
+        obj.mainfunc()
+
+    else:
+        print(' ---> Please provide parent directory.\n')
+ 
+    
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         
         
