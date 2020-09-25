@@ -14,12 +14,17 @@ input_path = r'C:\Users\panton01\Desktop\Trina-seizures\3642_3641_3560_3514\raw_
 ### ------------------------------------------------------------------------###
 
 ### ------------------------ IMPORTS -------------------------------------- ###
-import adi,os,sys,tables,json
+import os, sys, tables, json
 from tqdm import tqdm
 import numpy as np
 from scipy import signal
 from math import floor
 from string import ascii_lowercase
+# User Defined
+parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
+if ( os.path.join(parent_path,'helper') in sys.path) == False:
+    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
+import adi
 from path_helper import get_dir,sep_dir,rem_array
 ### ------------------------------------------------------------------------###
 

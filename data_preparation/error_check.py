@@ -84,18 +84,21 @@ class ErrorCheck:
 
         """
        
-        print('------------------------- Initiating Error Check -------------------------\n')
+        print('------------------------- Initiating Error Check for ', self.raw_data_path, ' -------------------------\n')
        
         print('---> Step 1 : Testing file opening ... \n')
         
-         # check that all blocks can be read or skipped succesfully
+        # check that all blocks can be read or skipped succesfully
         success = self.file_check(self.test_files)
         
         if success is True:
             print('\n--- >', self.cntr-1, 'files were opened or skipped successfully.\n')
         
-        if full_check is False:
+        
+        if full_check is True:
+            
             print('---> Step 2 : Testing file read ... \n')
+            
             # check that files can be read in full
             success = self.file_check(self.test_full_read)
             if success is True:
