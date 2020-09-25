@@ -6,9 +6,14 @@ Created on Tue Sep 22 15:39:58 2020
 """
 
 ### -------------------- IMPORTS -------------------- ###
-import adi, os, sys
+import os, sys
 from tqdm import tqdm
 import numpy as np
+# User Defined
+parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
+if ( os.path.join(parent_path,'helper') in sys.path) == False:
+    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
+import adi
 from path_helper import get_dir, rem_array
 #### ------------------------------------------------ ###
 
