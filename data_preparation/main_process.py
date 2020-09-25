@@ -44,38 +44,32 @@ class DataPrep():
                 obj = ErrorCheck(self.properties) # intialize object
                 obj.mainfunc() # run file check
 
-        
-    
-        
-        
-    
-        
-        
-
 
 if __name__ == '__main__':
     
     # # get path from user
-    # main_path = input('Enter data path:')
-    
-    if len(sys.argv)>1:
-        main_path = sys.argv[1]
+    main_path = input('Enter data path:')
+    breakpoint()
+    if os.path.isdir(main_path):
         
-        obj = DataPrep() # instantiate object
+        obj = DataPrep(main_path, property_dict) # instantiate object
+        
         try:
             obj.file_check() # perform file check
         except:
-            print('---> File check Failed! Operation Aborted.')   
-            
-            
-        # get sub directories
-        folders = [f.path for f in os.scandir(main_path) if f.is_dir()]
-        
-        for f_path in folders:
-            # if path exists
-            if os.path.isdir(f_path) == 1:
-                batch_clean_filt(f_path, num_channels = [0,1]) # filter and save files
-            else:
-                print('Path does not exist, please enter a valid path')
+            print('---> File check Failed! Operation Aborted.')
     else:
-        print('Path was not entered')
+        print('The input', main_path ,' was not a path. Please try again')
+            
+            
+    #     # get sub directories
+    #     folders = [f.path for f in os.scandir(main_path) if f.is_dir()]
+        
+    #     for f_path in folders:
+    #         # if path exists
+    #         if os.path.isdir(f_path) == 1:
+    #             batch_clean_filt(f_path, num_channels = [0,1]) # filter and save files
+    #         else:
+    #             print('Path does not exist, please enter a valid path')
+    # else:
+    #     print('Path was not entered')

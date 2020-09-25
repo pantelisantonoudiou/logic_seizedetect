@@ -28,7 +28,7 @@ property_dict = {
 
 class ErrorCheck:
     """
-    Class for checking if labchart files can be parsed and read properly
+    ErrorCheck. Class for checking if labchart files can be parsed and read properly
     One labchart file may contain recordings from multiple animals
     Each animal may have multiple channels (eg. 3 channels per animal)
     Hence one example file can have 12 channels from 4 animals
