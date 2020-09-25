@@ -70,9 +70,13 @@ class ErrorCheck:
         """
         self.cntr += 1
            
-    def mainfunc(self):
+    def mainfunc(self, full_check = False):
         """
         mainfunc(self)
+        
+        Parameters
+        ----------
+        full_check, bool = False, if True check that all files can be read
 
         Returns
         -------
@@ -90,11 +94,12 @@ class ErrorCheck:
         if success is True:
             print('\n--- >', self.cntr-1, 'files were opened or skipped successfully.\n')
         
-        # print('---> Step 2 : Testing file read ... \n')
-        # # check that files can be read in full
-        # success = self.file_check(self.test_full_read)
-        # if success is True:
-        #     print('\n--- > All files were read successfully.\n')
+        if full_check is False:
+            print('---> Step 2 : Testing file read ... \n')
+            # check that files can be read in full
+            success = self.file_check(self.test_full_read)
+            if success is True:
+                print('\n--- > All files were read successfully.\n')
         
         print('------------------------- Error Check Completed -------------------------\n')
                     
