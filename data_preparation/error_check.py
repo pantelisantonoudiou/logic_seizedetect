@@ -84,7 +84,7 @@ class ErrorCheck:
 
         """
        
-        print('------------------------- Initiating Error Check for ', self.raw_data_path, ' -------------------------\n')
+        print('--> Initiating Error Check for', self.raw_data_path, '\n')
        
         print('---> Step 1 : Testing file opening ... \n')
         
@@ -104,7 +104,8 @@ class ErrorCheck:
             if success is True:
                 print('\n--- > All files were read successfully.\n')
         
-        print('------------------------- Error Check Completed -------------------------\n')
+        print('-->  Error Check for', self.raw_data_path, 'completed. \n')
+        print('---------------------------------------------------------------------------\n')
                     
     def file_check(self, test_func):
         """

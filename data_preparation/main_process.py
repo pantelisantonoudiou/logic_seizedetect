@@ -33,27 +33,31 @@ class DataPrep():
         
      def file_check(self):
         
+        print('---------------------------------------------------------------------------\n')
+        print('------------------------- Initiating Error Check  -------------------------\n')
+        print('--->', len(self.folders), 'folders will be checked.\n')
         for f_path in self.folders: # iterate over folders
             
             if os.path.isdir(f_path) == 1: # if path exists
                 
                 # get path               
-                self.properties['raw_data_path'] = os.path.join(self.main_path, self.properties['data_dir'])
-            
+                self.properties['raw_data_path'] = os.path.join(f_path, self.properties['data_dir'])
+
                 # check files
                 obj = ErrorCheck(self.properties) # intialize object
                 obj.mainfunc() # run file check
+                
+        print('-------------------------- Error Check Completed --------------------------\n')
+        print('---------------------------------------------------------------------------\n')
 
 
 if __name__ == '__main__':
     
     # # get path from user
     main_path = input('Enter data path:')
-    breakpoint()
-    if os.path.isdir(main_path):
-        
+    
+    if os.path.isdir(main_path): 
         obj = DataPrep(main_path, property_dict) # instantiate object
-        
         try:
             obj.file_check() # perform file check
         except:
