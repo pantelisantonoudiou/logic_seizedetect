@@ -78,11 +78,11 @@ class ErrorCheck:
         
         Parameters
         ----------
-        full_check, bool = False, if True check that all files can be read
+        full_check, Bool = False, if True check that all files can be read
 
         Returns
         -------
-        None.
+        success, Bool, True if file check is successful
 
         """
        
@@ -106,6 +106,7 @@ class ErrorCheck:
         
         print('--->  Error Check for', self.raw_data_path, 'completed. \n')
         print('---------------------------------------------------------------------------\n')
+        return success
                     
     def file_check(self, test_func):
         """

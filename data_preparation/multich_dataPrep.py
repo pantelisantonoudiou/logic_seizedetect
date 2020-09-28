@@ -64,8 +64,6 @@ class lab2mat:
         # Declare instance properties
         self.ch_struct = property_dict['ch_struct'] # channel structure
         self.win = property_dict['win'] # seconds
-        self.fs = property_dict['fs'] # sampling rate
-        self.new_fs = property_dict['new_fs'] # new sampling rate
         self.animal_ids = [] # animal IDs in folder
         self.load_path ='' # full load path
         self.save_path = '' # full save path
@@ -88,7 +86,8 @@ class lab2mat:
         f = adi.read_file(os.path.join(self.load_path, self.filelist[0]))
         
         # get sampling rate and downsample factor
-        self.fs = round(f.channels[0].fs[0])
+        self.fs = round(f.channels[0].fs[0]) # sampling rate
+        self.new_fs = property_dict['new_fs'] # new sampling rate
         self.down_factor = round(self.fs/self.new_fs)
         
     def increase_cntr(self):
@@ -105,8 +104,8 @@ class lab2mat:
         Bool, False if channel list does not match channels structure
 
         """
-        
-        print('----------- Initiating File Conversion for', self.load_path, '\n')
+        print('---------------------------------------------------------------------------\n')
+        print('---> Initiating File Conversion for', self.load_path, '\n')
         
         # make path
         if os.path.exists(self.save_path) is False:
@@ -138,7 +137,7 @@ class lab2mat:
 
         print('--->  File Conversion Completed.', self.cntr-1, 'Files Were Saved To:', self.save_path, '\n')
         print('---------------------------------------------------------------------------\n')
-
+        return True
     
     # save in chunks per animal
     def save_chunks(self, file_obj, filename, ch_list):
