@@ -7,9 +7,11 @@ Created on Fri Sep 25 18:15:00 2020
 
 import os, sys
 from error_check import ErrorCheck
+from multich_dataPrep import lab2mat
 
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
+    'org_rawpath' : 'reorganized_data', # converted .h5 files
     'main_path' : '', # parent path
     'raw_data_path' : '', # raw data path
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
@@ -77,7 +79,32 @@ if __name__ == '__main__':
         if answer == 'y':
             for f_path in obj.folders: # iterate over folders      
                 if os.path.isdir(f_path) == 1: # if path exists
-                    print(f_path)
+                    
+                    # Convert Labchart to .h5 objects
+                    property_dict['main_path'] = f_path # update dict with main path
+                    file_obj = lab2mat(property_dict) # instantiate object    
+                    file_obj.mainfunc() # run analysis   
+                    file_obj.save(os.path.join(property_dict['main_path'], 'organized.json')) # save attributes as dictionary  
+                    
+                    # Filter and preprocess data
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 
                 
                 

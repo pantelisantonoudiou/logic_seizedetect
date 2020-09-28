@@ -21,7 +21,7 @@ property_dict = {
     'data_dir' : 'raw_data', # raw data directory
     'main_path' : '', # parent path
     'raw_data_path' : '', # raw data path
-    'ch_struct' : ['empty','vhpc', 'fc', 'emg'], # channel structure
+    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
     'new_fs': 100, # new sampling rate
@@ -96,9 +96,7 @@ class ErrorCheck:
         if success is True:
             print('\n--- >', self.cntr-1, 'files were opened or skipped successfully.\n')
         
-        
         if full_check is True:
-            
             print('---> Step 2 : Testing file read ... \n')
             
             # check that files can be read in full

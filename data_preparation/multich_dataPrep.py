@@ -5,12 +5,17 @@ Created on Thu Apr  9 10:11:27 2020
 """
 
 ### ----------------------- USER INPUT --------------------------------- ###
-
-# --->>>>>>>>> 
-# Add path to raw data folder in following format -> r'PATH'
-input_path = r'C:\Users\panton01\Desktop\Trina-seizures\3642_3641_3560_3514\raw_data'
-                # ---<<<<<<<< #
-
+property_dict = {
+    'data_dir' : 'raw_data', # raw data directory
+    'org_rawpath' : 'reorganized_data', # converted .h5 files
+    'main_path' : '', # parent path
+    'raw_data_path' : '', # raw data path
+    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+    'file_ext' : '.adicht', # file extension
+    'win' : 5, # window size in seconds
+    'new_fs': 100, # new sampling rate
+    'chunksize' : 2000, # number of rows to be read into memory
+                 } 
 ### ------------------------------------------------------------------------###
 
 ### ------------------------ IMPORTS -------------------------------------- ###
@@ -25,11 +30,9 @@ parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 if ( os.path.join(parent_path,'helper') in sys.path) == False:
     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
 import adi
-from path_helper import get_dir,sep_dir,rem_array
+from path_helper import get_dir, rem_array
 ### ------------------------------------------------------------------------###
 
-
-## print animal to be analyzed ##
 
 # CLASS FOR CONVERTING LABCHART TO H5 FILES
 class lab2mat:
@@ -49,49 +52,49 @@ class lab2mat:
     """
    
     # class constructor (data retrieval)
-    def __init__(self, load_path):
+    def __init__(self, property_dict):
         """
         lab2mat(main_path)
 
         Parameters
         ----------
-        load_path : Str
+        property_dict : Dict contianing essential parameters for conversion
 
         """
         # Declare instance properties
-        self.ch_struct = ['vhpc', 'fc', 'emg'] # channel structure
-        self.win = 5 # seconds
-        self.fs = 0 # sampling rate
-        self.new_fs = 100 # downsample factor
+        self.ch_struct = property_dict['ch_struct'] # channel structure
+        self.win = property_dict['win'] # seconds
+        self.fs = property_dict['fs'] # sampling rate
+        self.new_fs = property_dict['new_fs'] # new sampling rate
         self.animal_ids = [] # animal IDs in folder
         self.load_path ='' # full load path
         self.save_path = '' # full save path
-        self.gen_path = '' # general path (animal level)
-        self.raw_path = '' # folder containing labchart files
-        self.org_rawpath = 'reorganized_data' # reorganized data folder
-        self.filelist = [] # file list
+        self.org_rawpath = property_dict['org_rawpath'] # reorganized data folder
         self.file_ext = '.adicht' # file extension
-        self.chunksize = 2000 # number of rows to be read into memory
-        
-        # Get general and inner paths
-        self.gen_path, self.raw_path = sep_dir(load_path,1)
+        self.chunksize = property_dict['chunksize'] # number of rows to be read into memory
         
         # Get animal path
-        temp = get_dir(load_path,2)
+        temp = get_dir(property_dict['main_path'],2)
         self.animal_ids = temp.split('_')
+        
+        # Get raw data path
+        self.load_path = os.path.join(property_dict['main_path'], property_dict['data_dir']) # raw path
 
         # Make paths
-        self.load_path = os.path.join(self.gen_path, self.raw_path)
-        self.save_path = os.path.join(self.gen_path, self.org_rawpath)
-        self.filelist = list(filter(lambda k: self.file_ext in k, os.listdir(load_path)))
+        self.save_path = os.path.join(property_dict['main_path'], self.org_rawpath)
+        self.filelist = list(filter(lambda k: self.file_ext in k, os.listdir(self.load_path)))
         
         # Get adi file obj to retrieve settings
-        f = adi.read_file(os.path.join(load_path, self.filelist[0]))
+        f = adi.read_file(os.path.join(self.load_path, self.filelist[0]))
         
         # get sampling rate and downsample factor
         self.fs = round(f.channels[0].fs[0])
         self.down_factor = round(self.fs/self.new_fs)
         
+    def increase_cntr(self):
+        """
+        """
+        self.cntr += 1    
   
     # main methods (iterate over files)
     def mainfunc(self):
@@ -99,18 +102,18 @@ class lab2mat:
 
         Returns
         -------
-        None.
+        Bool, False if channel list does not match channels structure
 
         """
+        
+        print('----------- Initiating File Conversion for', self.load_path, '\n')
         
         # make path
         if os.path.exists(self.save_path) is False:
             os.mkdir(self.save_path)
         
-        # init progress bar
-        total = len(self.filelist)*len(self.animal_ids)       
+        self.cntr = 1 # init counter
         
-        cntr = 1 # init counter
         # loop through labchart files (multilple animals per file)
         for i in range(len(self.filelist)):
             
@@ -122,7 +125,8 @@ class lab2mat:
             ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
             
             if len(ch_list) - len(self.animal_ids) != 0:
-                print('Animal numbers do not match channel structure')
+                print('******** Animal numbers do not match channel structure ********\n')
+                return False
                 
             for ii in range(len(ch_list)): # iterate through animals
                 
@@ -131,13 +135,13 @@ class lab2mat:
          
                 # downsample and save in chuncks
                 self.save_chunks(f,filename,ch_list[ii])
-                
-                print(cntr, 'of',total ,'Experiments Saved')
-                cntr += 1 # update counter
-    
+
+        print('--->  File Conversion Completed.', self.cntr-1, 'Files Were Saved To:', self.save_path, '\n')
+        print('---------------------------------------------------------------------------\n')
+
     
     # save in chunks per animal
-    def save_chunks(self,file_obj,filename,ch_list):
+    def save_chunks(self, file_obj, filename, ch_list):
         """
         save_chunks(self,file_obj,filename,ch_list)
 
@@ -160,15 +164,20 @@ class lab2mat:
         
         for block in range(all_blocks):
             
+            # print file being analyzed
+            print(self.cntr,'-> Reading from block :', block, 'in File:', filename)
+            self.increase_cntr() # increase object counter
+            
             # get first channel (applies across animals channels)
             chobj = file_obj.channels[ch_list[0]] # get channel obj
             
             try: # skip corrupted blocks
                 chobj.get_data(block+1,start_sample=0,stop_sample=1000)
             except:
-                print(block, ' is corrupted')
+                print('Block :', block, 'in File:', filename, 'is corrupted')
                 continue
             
+            ### CHANNEL PARAMETERS ###
             length = chobj.n_samples[block] # get block length in samples
             win_samp = self.win * self.fs # get window size in samples
             mat_shape = [0,0] # init mat shape
@@ -176,8 +185,7 @@ class lab2mat:
             mat_shape[1] = round(win_samp / self.down_factor) # get number of columns
             idx = rem_array(0, mat_shape[0], self.chunksize) # get index
             
-            
-            ### SAVING PARAMETERS ##
+            ### SAVING PARAMETERS ###
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
             full_path = os.path.join(self.save_path, file_id) # get full save path
             fsave = tables.open_file(full_path, mode='w') # open tables object
@@ -202,8 +210,8 @@ class lab2mat:
                 # append data to datastore
                 ds.append(data)
             
-            # print('Total length = ',length)
-            fsave.close() # close table object
+            # close table object
+            fsave.close() 
         
     
     # segment labchart file to numpy array
@@ -213,10 +221,10 @@ class lab2mat:
 
         Parameters
         ----------
-        chobj : ADI CHANNEL OBJECT
+        chobj : ADI labchart chanel object
  
-        block : INT, Block number of labchart file.
-        cols : INT, number of columns.
+        block : Int, Block number of labchart file.
+        cols : Int, number of columns.
         idx : TWO ELEMENT NP VECTOR- INT
             start and stop index in window blocks.
 
@@ -263,21 +271,26 @@ class lab2mat:
         openpath = open(path, 'r').read()
         attrb = json.loads(openpath)
         return attrb
-    
-    
 
 # Execute if module runs as main program
 if __name__ == '__main__':
-   # create instance
-   obj = lab2mat(input_path)
-   
-   # run analysis
-   obj.mainfunc()
-   
-   # save attributes as dictionary        
-   obj.save(os.path.join(obj.gen_path, 'organized.json'))
-      
+    
+    if len(sys.argv) == 2:
+        
+        # update dict with raw path
+        property_dict['main_path'] = sys.argv[1]
+     
+        # create instance
+        obj = lab2mat(property_dict)
+    
+        # run analysis
+        obj.mainfunc()
+        
+        # save attributes as dictionary        
+        obj.save(os.path.join(property_dict['main_path'], 'organized.json'))
 
+    else:
+        print(' ---> Please provide parent directory.\n')
 
 
         
