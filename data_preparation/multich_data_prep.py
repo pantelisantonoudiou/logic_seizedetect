@@ -132,7 +132,7 @@ class Lab2Mat:
                 filename = self.filelist[i].replace(self.file_ext, "") + '_' + self.animal_ids[ii]
          
                 # downsample and save in chuncks
-                # self.save_chunks(f,filename,ch_list[ii])
+                self.save_chunks(f,filename,ch_list[ii])
 
         print('\n--->  File Conversion Completed.', self.cntr-1, '\n Files Were Saved To:', self.save_path+'.', '\n')
         print('---------------------------------------------------------------------------\n')
