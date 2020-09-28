@@ -35,7 +35,7 @@ from path_helper import get_dir, rem_array
 
 
 # CLASS FOR CONVERTING LABCHART TO H5 FILES
-class lab2mat:
+class Lab2Mat:
     """
     Class for convering labchart files to H5 format
     One labchart file may contain recordings from multiple animals
@@ -72,8 +72,7 @@ class lab2mat:
         self.chunksize = property_dict['chunksize'] # number of rows to be read into memory
         
         # Get animal path
-        temp = get_dir(property_dict['main_path'],2)
-        self.animal_ids = temp.split('_')
+        self.animal_ids = get_dir(property_dict['main_path'],1).split('_')
         
         # Get raw data path
         self.load_path = os.path.join(property_dict['main_path'], property_dict['data_dir']) # raw path
@@ -89,7 +88,7 @@ class lab2mat:
         self.fs = round(f.channels[0].fs[0]) # sampling rate
         self.new_fs = property_dict['new_fs'] # new sampling rate
         self.down_factor = round(self.fs/self.new_fs)
-        
+
     def increase_cntr(self):
         """
         """
@@ -105,7 +104,7 @@ class lab2mat:
 
         """
         print('---------------------------------------------------------------------------\n')
-        print('---> Initiating File Conversion for', self.load_path, '\n')
+        print('---> Initiating File Conversion for', self.load_path+'.', '\n')
         
         # make path
         if os.path.exists(self.save_path) is False:
@@ -122,7 +121,7 @@ class lab2mat:
             # get channel list
             ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
             ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
-            
+
             if len(ch_list) - len(self.animal_ids) != 0:
                 print('******** Animal numbers do not match channel structure ********\n')
                 return False
@@ -135,7 +134,7 @@ class lab2mat:
                 # downsample and save in chuncks
                 self.save_chunks(f,filename,ch_list[ii])
 
-        print('--->  File Conversion Completed.', self.cntr-1, 'Files Were Saved To:', self.save_path, '\n')
+        print('\n--->  File Conversion Completed.', self.cntr-1, '\n Files Were Saved To:', self.save_path+'.', '\n')
         print('---------------------------------------------------------------------------\n')
         return True
     
@@ -164,7 +163,7 @@ class lab2mat:
         for block in range(all_blocks):
             
             # print file being analyzed
-            print(self.cntr,'-> Reading from block :', block, 'in File:', filename)
+            print(self.cntr,'-> Converting block :', block, 'in File:', filename)
             self.increase_cntr() # increase object counter
             
             # get first channel (applies across animals channels)
@@ -173,7 +172,7 @@ class lab2mat:
             try: # skip corrupted blocks
                 chobj.get_data(block+1,start_sample=0,stop_sample=1000)
             except:
-                print('Block :', block, 'in File:', filename, 'is corrupted')
+                print('Block :', block, 'in File:', filename, 'is corrupted.')
                 continue
             
             ### CHANNEL PARAMETERS ###
@@ -194,7 +193,7 @@ class lab2mat:
                                         chunkshape = [self.chunksize,mat_shape[1],len(ch_list)])
             
             ## Iterate over channel length ##
-            for i in tqdm(range(len(idx)-1), desc = 'Experiment', file=sys.stdout): # loop though index 
+            for i in tqdm(range(len(idx)-1), desc = 'Progress', file=sys.stdout): # loop though index 
             
                 # preallocate data
                 data = np.zeros([idx[i+1] - idx[i], mat_shape[1], len(ch_list)])
@@ -280,7 +279,7 @@ if __name__ == '__main__':
         property_dict['main_path'] = sys.argv[1]
      
         # create instance
-        obj = lab2mat(property_dict)
+        obj = Lab2Mat(property_dict)
     
         # run analysis
         obj.mainfunc()
