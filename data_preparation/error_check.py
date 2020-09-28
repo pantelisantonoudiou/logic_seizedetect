@@ -18,8 +18,10 @@ from path_helper import get_dir, rem_array
 #### ------------------------------------------------ ###
 
 property_dict = {
-    'raw_data_path' : r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220\raw_data', # raw data path
-    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+    'data_dir' : 'raw_data', # raw data directory
+    'main_path' : '', # parent path
+    'raw_data_path' : '', # raw data path
+    'ch_struct' : ['empty','vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
     'new_fs': 100, # new sampling rate
@@ -45,7 +47,7 @@ class ErrorCheck:
 
         """
         # Declare instance properties
-        self.raw_data_path = property_dict['raw_data_path'] # raw path
+        self.raw_data_path = os.path.join(property_dict['main_path'], property_dict['data_dir']) # raw path
         self.ch_struct = property_dict['ch_struct'] # channel structure
         self.win = property_dict['win'] # channel structure
         self.file_ext = property_dict['file_ext'] # file extension
@@ -104,7 +106,7 @@ class ErrorCheck:
             if success is True:
                 print('\n--- > All files were read successfully.\n')
         
-        print('-->  Error Check for', self.raw_data_path, 'completed. \n')
+        print('--->  Error Check for', self.raw_data_path, 'completed. \n')
         print('---------------------------------------------------------------------------\n')
                     
     def file_check(self, test_func):
@@ -128,14 +130,18 @@ class ErrorCheck:
             # get adi file obj
             f = adi.read_file(os.path.join(self.raw_data_path, self.filelist[i])) 
             
-            # get channel list
+            # get channel list     
             ch_idx = np.linspace(1,f.n_channels,f.n_channels,dtype=int)
-            ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
-            
-            if len(ch_list) - len(self.animal_ids) != 0:
-                print('Error! Animal numbers do not match channel structure')
-                return False
+            ch_list = []; # init empty channel list
+            if f.n_channels % len(self.ch_struct) == 0: # check if chanels are divisible by channel structure
+
+                # split according to channel length
+                ch_list = np.split(ch_idx, round(f.n_channels/len(self.ch_struct)))
                 
+            if len(ch_list) - len(self.animal_ids) != 0: # check if channel list length matches length of animals
+                print('********** Error!!! Animal numbers do not match channel structure!!! **********\n')
+                return False
+
             for ii in range(len(ch_list)): # iterate through animals
                 
                 # get exp name

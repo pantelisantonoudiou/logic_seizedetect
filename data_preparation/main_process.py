@@ -10,7 +10,8 @@ from error_check import ErrorCheck
 
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
-    'raw_data_path' : '', # full path to raw data
+    'main_path' : '', # parent path
+    'raw_data_path' : '', # raw data path
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
@@ -40,8 +41,8 @@ class DataPrep():
             
             if os.path.isdir(f_path) == 1: # if path exists
                 
-                # get path               
-                self.properties['raw_data_path'] = os.path.join(f_path, self.properties['data_dir'])
+                # pass main path to dict               
+                self.properties['main_path'] = f_path
 
                 # check files
                 obj = ErrorCheck(self.properties) # intialize object
@@ -53,27 +54,32 @@ class DataPrep():
 
 if __name__ == '__main__':
     
-    # # get path from user
+    # Get path from user
     main_path = input('Enter data path:')
     
+    # File CHeck
     if os.path.isdir(main_path): 
         obj = DataPrep(main_path, property_dict) # instantiate object
         try:
-            obj.file_check() # perform file check
+            file_check_success = obj.file_check() # perform file check
         except:
+            file_check_success = False
             print('---> File check Failed! Operation Aborted.')
+            print(sys.exc_info()[0])
+
     else:
         print('The input', main_path ,' was not a path. Please try again')
-            
-            
-    #     # get sub directories
-    #     folders = [f.path for f in os.scandir(main_path) if f.is_dir()]
+    
+    if file_check_success is True:
+        # Verify whether to proceed
+        answer = input('-> File Check Completed. Dou want to proceed? (y/n)')    
         
-    #     for f_path in folders:
-    #         # if path exists
-    #         if os.path.isdir(f_path) == 1:
-    #             batch_clean_filt(f_path, num_channels = [0,1]) # filter and save files
-    #         else:
-    #             print('Path does not exist, please enter a valid path')
-    # else:
-    #     print('Path was not entered')
+        if answer == 'y':
+            for f_path in obj.folders: # iterate over folders      
+                if os.path.isdir(f_path) == 1: # if path exists
+                    print(f_path)
+                
+                
+                
+                
+                
