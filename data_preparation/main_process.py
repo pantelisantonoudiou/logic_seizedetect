@@ -108,16 +108,16 @@ def main_func(main_path):
             for f_path in obj.folders: # iterate over folders      
                 if os.path.isdir(f_path) == 1: # if path exists
                     
-                    # # Convert Labchart to .h5 objects
-                    # property_dict['main_path'] = f_path # update dict with main path
-                    # file_obj = Lab2Mat(property_dict) # instantiate object    
-                    # file_obj.mainfunc() # run analysis   
-                    # file_obj.save(os.path.join(property_dict['main_path'], 'organized.json')) # save attributes as dictionary  
+                    # 1 Convert Labchart to .h5 objects
+                    property_dict['main_path'] = f_path # update dict with main path
+                    file_obj = Lab2Mat(property_dict) # instantiate object    
+                    file_obj.mainfunc() # run analysis   
+                    file_obj.save(os.path.join(property_dict['main_path'], 'organized.json')) # save attributes as dictionary  
                     
-                    # Filter and preprocess data
+                    # 2 Filter and preprocess data
                     batch_clean_filt(property_dict,  num_channels = [0,1])
                     
-                    # Get Method/Model Predictions
+                    # 3 Get Method/Model Predictions
 
 if __name__ == '__main__':
     

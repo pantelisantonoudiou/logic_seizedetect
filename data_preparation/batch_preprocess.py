@@ -12,7 +12,7 @@ from tqdm import tqdm
 parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 if ( os.path.join(parent_path,'helper') in sys.path) == False:
     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
-from io import get_data, save_data
+from io_getfeatures import get_data, save_data
 from preprocess import preprocess_data
 ### ----------------------------------------------- ###
 
@@ -23,22 +23,37 @@ property_dict = {
     } 
 
 def batch_clean_filt(property_dict, num_channels = [0,1]):
+    """
     
+
+    Parameters
+    ----------
+    property_dict : Dictionary with essential paths
+    num_channels : List, Channels to be filtered optional The default is [0,1].
+    # Get channels by name
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    # Get paths from dict
     main_path = property_dict['main_path'] # main path
     read_dir = property_dict['org_rawpath'] # name of read dir
-    filt_dir = property_dict['filt_data'] # name filt directory 
+    filt_dir = property_dict['filt_dir'] # name filt directory 
     
-    # create path if it doesn't exist
+    # Create path if it doesn't exist
     save_dir = os.path.join(main_path, filt_dir)
     if os.path.isdir(save_dir) == 0:
         os.mkdir(save_dir)
     
-    # get file list 
+    # Get file list 
     ver_path = os.path.join(main_path, read_dir)
     filelist = list(filter(lambda k: '.h5' in k, os.listdir(ver_path))) # get only files with predictions
     filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
     
-    print(len(filelist), 'files will be filtered.')
+    print('\n --->', len(filelist), 'files will be filtered.\n')
     for i in tqdm(range(0, len(filelist)), desc = 'Progress:', file=sys.stdout): # loop through experiments 
     
         # Get data and true labels
@@ -50,7 +65,7 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
         # Save data
         save_data(save_dir, filelist[i], data)
         
-    print('Files in', main_path, 'directory have been cleaned and saved in:', '-', filt_dir, '-')
+    print('Files in', main_path, 'directory have been cleaned and saved in:', '-/', filt_dir, '-')
     print('---------------------------------------------------------------------------\n')
         
         
