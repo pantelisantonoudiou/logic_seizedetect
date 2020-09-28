@@ -9,6 +9,7 @@ import os, sys
 from error_check import ErrorCheck
 from multich_data_prep import Lab2Mat
 from batch_preprocess import batch_clean_filt
+from get_predictions import modelPredict
 
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
@@ -21,6 +22,7 @@ property_dict = {
     'win' : 5, # window size in seconds
     'new_fs': 100, # new sampling rate
     'chunksize' : 2000, # number of rows to be read into memory
+    'ch_list': [0,1]
                  } 
 
 class DataPrep():
@@ -111,13 +113,15 @@ def main_func(main_path):
                     # 1 Convert Labchart to .h5 objects
                     property_dict['main_path'] = f_path # update dict with main path
                     file_obj = Lab2Mat(property_dict) # instantiate object    
-                    file_obj.mainfunc() # run analysis   
+                    file_obj.mainfunc() # run conversion   
                     file_obj.save(os.path.join(property_dict['main_path'], 'organized.json')) # save attributes as dictionary  
                     
                     # 2 Filter and preprocess data
-                    batch_clean_filt(property_dict,  num_channels = [0,1])
+                    batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
                     
                     # 3 Get Method/Model Predictions
+                    model_obj = modelPredict(property_dict)
+                    model_obj.mainfunc() # run predictions
 
 if __name__ == '__main__':
     

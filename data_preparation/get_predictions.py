@@ -5,15 +5,6 @@ Created on Mon Jun 15 18:22:20 2020
 @author: Pante
 """
 
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May  7 10:18:28 2020
-
-@author: Pante
-"""
-
-
 ##    >>>>>>>>> USER INPUT <<<<<<<<          ##
 # # Add path to raw data folder in following format -> r'PATH'
 # input_path = r'C:\Users\Pante\Desktop\test1\raw_data'
@@ -24,25 +15,30 @@ Created on Thu May  7 10:18:28 2020
                ## ---<<<<<<<< ##              
                
 ### ------------------------ IMPORTS -------------------------------------- ###               
-import os,tables
-import numpy as np
-from keras.models import load_model
+import os, sys, tables
 from tqdm import tqdm
+import numpy as np
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from multich_dataPrep import lab2mat
-from path_helper import sep_dir
-from array_helper import find_szr_idx
-from single_psd import single_psd
+
+# User Defined
+parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
+if ( os.path.join(parent_path,'helper') in sys.path) == False:
+    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
+from path_helper import sep_dir    
+from array_helper import find_szr_idx, merge_close
+from io_getfeatures import get_data, get_features_allch
+from multich_data_prep import Lab2Mat
+import features
 ### ------------------------------------------------------------------------###
-import matplotlib.pyplot as plt
-import pdb
+
               
 class modelPredict:
     """
     Class for batch seizure prediction
     """
     
-    # class constructor (data retrieval)
+    # class constructor (data retrieval) ### GET CORRECT PARAMETERS
     def __init__(self, input_path):
         """
         lab2mat(main_path)
@@ -61,7 +57,7 @@ class modelPredict:
         
         # load object properties as dict
         jsonfile = 'organized.json'
-        obj_props = lab2mat.load(os.path.join(self.gen_path, jsonfile))
+        obj_props = Lab2Mat.load(os.path.join(self.gen_path, jsonfile))
         self.org_rawpath = obj_props['org_rawpath']
         
         # create raw pred path
@@ -76,6 +72,19 @@ class modelPredict:
         self.surround_time = 60 # time around seizures in seconds
         self.szr_pwr_thresh = 200 # szr power thresh         
         self.szr_segments =  np.array([2,2],dtype=int)  # segments before and after seizure segment
+        
+        self.ch_list ;## get ch list from dict
+        self.load_path # reorganized path
+        
+        # Read method parameters into dataframe
+        df = pd.read_csv('selected_method.csv')
+        self.thresh = np.array(df.loc[0][df.columns.str.contains('Thresh')])
+        self.weights = np.array(df.loc[0][df.columns.str.contains('Weight')])
+        self.enabled = np.array(df.loc[0][df.columns.str.contains('Enabled')])
+        
+        # Get feature names
+        self.feature_names = df.columns[df.columns.str.contains('Enabled')] # get
+        self.feature_names = np.array([x.replace('Enabled_', '') for x in  self.feature_names])
 
 
     def mainfunc(self, model_path):
@@ -94,155 +103,21 @@ class modelPredict:
             os.mkdir( self.rawpred_path)
         
         # get file list
-        mainpath = os.path.join(self.gen_path, self.org_rawpath)
-        verpath = os.path.join(self.gen_path, 'verified_predictions_pantelis')
-        filelist = list(filter(lambda k: '.csv' in k, os.listdir(verpath)))
-        
-        # load model object to memory to get path
-        model = load_model(model_path)
-        
+        filelist = list(filter(lambda k: '.h5' in k, os.listdir(self.load_path)))
         
         # loop files (multilple channels per file)
         for i in tqdm(range(len(filelist))):
             
-            # get organized data
-            file_id = filelist[i].replace('.csv', '.h5')
-            filepath = os.path.join(mainpath, file_id)
-            f = tables.open_file(filepath, mode='r')
-            data = f.root.data[:]
-            data = data[:,:,0:2] # select channels
-            # data = data.reshape(data.shape[0], data.shape[1], 1)
-            
             # get predictions (1D-array)
-            bin_pred = self.get_predictions(data, model)
+            bin_pred = self.get_feature_pred(file_id)
    
-            # refine predictions (1D-array)
-            ref_pred = self.refine_seizures(data, bin_pred)
-
             # save predictions as .csv
             file_id = filelist[i].replace('.h5', '.csv')
             np.savetxt(os.path.join(self.rawpred_path,file_id), ref_pred, delimiter=',',fmt='%i')
             
             
-    def power_thresh(self,data,idx):
-        """
-        power_thresh(self,data,idx)
 
-        Parameters
-        ----------
-        data : 2D Numpy Array (rows = segments, columns = time bins)
-            Raw data.
-        idx : 2 column Numpy Array (rows = seizure segments)
-            First column = seizure start segment.
-            Second column = seizure end segment.
-
-        Returns
-        -------
-        idx : Same as input index
-            Only seizure segments that obay power threshold condition are kept.
-
-        """
-        
-        # Set Parameters
-        powerobj = single_psd(self.fs,0.5, self.win) # init PSD object
-        freq_range = [2,40] # set range for power estimation
-        outbins = round(self.surround_time/self.win) # convert bounds to bins
-        logic_idx = np.zeros(idx.shape[0], dtype=int) # pre-allocate logic vector
-        
-        for i in range(idx.shape[0]): # iterate through seizure segments
-            
-            # get seizure and surrounding segments
-            bef = data[idx[i,0] - outbins : idx[i,0] ,:].flatten() # segment before seizure
-            after = data[idx[i,1] : idx[i,1] + outbins,:].flatten() # segment after seizure
-            outszr = np.concatenate((bef,after),axis = None) # merge
-            szr = data[idx[i,0] : idx[i,1],:].flatten() # seizure segment 
-           
-            # get power
-            outszr_pwr = powerobj.powersd(outszr,freq_range) # around seizure
-            szr_pwr = powerobj.powersd(szr,freq_range) # seizure
-            
-            # check if power difference meets threshold
-            cond = (np.sum(np.mean(szr_pwr,axis = 1)) / np.sum(np.mean(outszr_pwr,axis = 1)))*100
-            if cond > (self.szr_pwr_thresh):
-                logic_idx[i] = 1
-        
-        # get index that passed threshold
-        idx = idx[logic_idx == 1,:]
-        return idx
-            
-            
-    def get_predictions(self, data, model):
-        """
-        get_predictions(self, data, model)
-    
-        Parameters
-        ----------
-        data : Numpy array
-    
-        model : keras model
-    
-        ch_sel : List
-            Containing selected channels.
-    
-        Returns
-        -------
-        binpred : Numpy array (rows = segments, columns = channels)
-        Model binary predictions
-
-        """
-        # init array
-        binpred = np.zeros(data.shape[0], dtype = int)
-        
-        # get scaler
-        scaler = StandardScaler()
-        
-        # iterate over selected data channels
-        for i in range(data.shape[2]):
-            data[:,:,i] = scaler.fit_transform(data[:,:,i]) # normalize
-            
-        pred = model.predict(data) # get predictions
-        # pdb.set_trace()
-        # plt.figure()
-        # plt.hist(pred[:,1],bins=1000)
-        # binpred = np.argmax(pred, axis = 1) # index of largest score
-        binpred = pred[:,1]>0.5
-        binpred = binpred.astype(np.int)
-        return binpred # return predictions
-    
-    
-    def refine_seizures(self, data, binpred):
-        """
-        ref_pred = refine_seizures(self, data, binpred)
-
-        Parameters
-        ----------
-        data : Numpy array
-        binpred : 1D-numpy array, model predictions
-
-        Returns
-        -------
-        ref_pred : Numpy array, refined predictions
-
-        """
-        
-        # remove discontinous seizure segments
-        idx_bounds = find_szr_idx(binpred, self.szr_segments)
-
-        # Remove segments that do not exceed power threshold, based on ch1-vHPC
-        idx_bounds = self.power_thresh(data[:,:,0],idx_bounds)
- 
-        # pre allocate file for refined prediction with zeros
-        ref_pred = np.zeros(binpred.shape[0])
-        
-        # convert index to binary file
-        for i in range(idx_bounds.shape[0]): # assign index to 1
-            if idx_bounds[i,0] > 0:
-                ref_pred[idx_bounds[i,0]:idx_bounds[i,1]+1] = 1
-        
-        return ref_pred
-    
-
-### add method    
+    ### add method    
     def get_feature_pred(self, file_id):
         """
         get_feature_pred(self, file_id)
@@ -264,7 +139,7 @@ class modelPredict:
         cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
         
         # Get data and true labels
-        data = get_data(self.gen_path, file_id, ch_num = ch_list, inner_path={'data_path':'filt_data'}, load_y = False)
+        data = get_data(self.gen_path, file_id, ch_num = self.ch_list, inner_path={'data_path':'filt_data'}, load_y = False)
         
         # Extract features and normalize
         x_data, labels = get_features_allch(data,param_list, cross_ch_param_list) # Get features and labels
@@ -288,7 +163,9 @@ class modelPredict:
             idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
             bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)    
         
-        return bounds_pred        
+        return bounds_pred 
+
+        
 # # Execute if module runs as main program
 # if __name__ == '__main__':
     
