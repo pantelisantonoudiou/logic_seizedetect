@@ -14,6 +14,7 @@ from get_predictions import modelPredict
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
     'org_rawpath' : 'reorganized_data', # converted .h5 files
+    'rawpred_path': 'raw_predictions', # seizure predictions directory
     'main_path' : '',       # parent path
     'filt_dir' : 'filt_data', # filt directory 
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
@@ -72,12 +73,10 @@ class DataPrep():
 
 def main_func(main_path):
     """
-    
 
     Parameters
     ----------
-    main_path : TYPE
-        DESCRIPTION.
+    main_path : Str, Path to parent directory containing animal folders
 
     Returns
     -------
@@ -108,19 +107,19 @@ def main_func(main_path):
             for f_path in obj.folders: # iterate over folders      
                 if os.path.isdir(f_path) == 1: # if path exists
                     
-        #             # -1 Convert Labchart to .h5 objects
-        #             property_dict['main_path'] = f_path # update dict with main path
-        #             file_obj = Lab2Mat(property_dict) # instantiate object    
-        #             file_obj.mainfunc() # Convert data   
-        #             file_obj.save(os.path.join(property_dict['main_path'], # save attributes as dictionary  
-        #                                        property_dict['properties_file'])) 
-                    
-        #             # -2 Filter and preprocess data
-        #             batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
+                    # -1 Convert Labchart to .h5 objects
+                    property_dict['main_path'] = f_path # update dict with main path
+                    file_obj = Lab2Mat(property_dict) # instantiate object    
+                    file_obj.mainfunc() # Convert data   
+
+                    # -2 Filter and preprocess data
+                    batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
                     
                     # -3 Get Method/Model Predictions
                     model_obj = modelPredict(property_dict)
                     model_obj.mainfunc() # Get predictions
+                    
+            print('\n************************* All Steps Completed *************************n')
 
 if __name__ == '__main__':
     

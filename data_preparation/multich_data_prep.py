@@ -74,10 +74,11 @@ class Lab2Mat:
         self.animal_ids = get_dir(property_dict['main_path'],1).split('_')
         
         # Get raw data path
-        self.load_path = os.path.join(property_dict['main_path'], property_dict['data_dir']) # raw path
+        self.gen_path = property_dict['main_path'] # parent path
+        self.load_path = os.path.join(self.gen_path, property_dict['data_dir']) # raw data path
 
         # Make paths
-        self.save_path = os.path.join(property_dict['main_path'], self.org_rawpath)
+        self.save_path = os.path.join(self.gen_path, self.org_rawpath)
         self.filelist = list(filter(lambda k: self.file_ext in k, os.listdir(self.load_path)))
         
         # Get adi file obj to retrieve settings
@@ -132,7 +133,9 @@ class Lab2Mat:
          
                 # downsample and save in chuncks
                 self.save_chunks(f,filename,ch_list[ii])
-
+        
+        # save attributes as dictionary
+        self.save(os.path.join(self.gen_path,'organized.json'))   
         print('\n--->  File Conversion Completed.', self.cntr-1, '\n Files Were Saved To:', self.save_path+'.', '\n')
         print('---------------------------------------------------------------------------\n')
         return True

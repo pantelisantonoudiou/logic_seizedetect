@@ -6,7 +6,7 @@ Created on Wed Jul 29 14:43:22 2020
 """
 
 ### ------------------- Imports ------------------- ###
-import os, sys
+import os, sys, json
 from tqdm import tqdm
 # User Defined
 parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
@@ -14,6 +14,7 @@ if ( os.path.join(parent_path,'helper') in sys.path) == False:
     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
 from io_getfeatures import get_data, save_data
 from preprocess import preprocess_data
+from multich_data_prep import Lab2Mat
 ### ----------------------------------------------- ###
 
 property_dict = {
@@ -38,13 +39,19 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
 
     """
     
-    #!!!!!!!!! ADD READ FROM JSON FILE
-    #!!!!!!!!!! SAVE NEW PROPERTIES TO JSON FILE
+     # Get main path and load properties file
+    jsonpath = os.path.join(property_dict['main_path'], 'organized.json') # name of dictionary where propeties are stored
+    obj_props = Lab2Mat.load(jsonpath) # load dict
     
     # Get paths from dict
     main_path = property_dict['main_path'] # main path
     read_dir = property_dict['org_rawpath'] # name of read dir
     filt_dir = property_dict['filt_dir'] # name filt directory 
+    
+    # update and save dir as json
+    obj_props.update({'filt_dir' : property_dict['filt_dir']}) # filter directory
+    obj_props.update({'ch_list' : num_channels}) # channel list
+    open(jsonpath, 'w').write(json.dumps(obj_props))
     
     # Create path if it doesn't exist
     save_dir = os.path.join(main_path, filt_dir)

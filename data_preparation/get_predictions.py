@@ -59,13 +59,10 @@ class modelPredict:
         self.gen_path = property_dict['main_path']
         jsonpath = os.path.join(self.gen_path, 'organized.json') # name of dictionary where propeties are stored
         obj_props = Lab2Mat.load(jsonpath) # load dict
-        
-        # Pass input path
-        self.org_rawpath = os.path.join(self.gen_path, property_dict['org_rawpath'])
                
         # Need to get from obj props
-        self.filt_dir = property_dict['filt_dir'] # get filt dir
-        self.ch_list = property_dict['ch_list'] # Get ch list from dict
+        self.filt_dir = obj_props['filt_dir'] # get filt dir
+        self.ch_list = obj_props['ch_list'] # Get ch list from dict
         
         # Create raw pred path
         obj_props.update({'rawpred_path' : property_dict['rawpred_path']})
@@ -76,7 +73,7 @@ class modelPredict:
         self.win = obj_props['win']
 
         # Read method parameters into dataframe
-        df = pd.read_csv('selected_method.csv')
+        df = pd.read_csv(os.path.join(parent_path,'helper','selected_method.csv'))
         self.thresh = np.array(df.loc[0][df.columns.str.contains('Thresh')])
         self.weights = np.array(df.loc[0][df.columns.str.contains('Weight')])
         self.enabled = np.array(df.loc[0][df.columns.str.contains('Enabled')])
@@ -89,32 +86,32 @@ class modelPredict:
         open(jsonpath, 'w').write(json.dumps(obj_props))
 
 
-    def mainfunc(self, model_path):
+    def mainfunc(self):
         """
-        mainfunc(input_path,model_path,ch_sel)
-    
-        Parameters
-        ----------
-        input_path : String, Path to raw data.
-
-        model_path : String, Path to model.
+        mainfunc(self)
         """
+       
+        print('---------------------------------------------------------------------------\n')
+        print('---> Initiating Predictions for:', self.rawpred_path + '.', '\n')
        
         # Create path prediction path
         if os.path.exists(self.rawpred_path) is False:
             os.mkdir(self.rawpred_path)
         
         # Get file list
-        filelist = list(filter(lambda k: '.h5' in k, os.listdir(self.load_path)))
+        filelist = list(filter(lambda k: '.h5' in k, os.listdir(os.path.join(self.gen_path, self.filt_dir))))
         
         # loop files (multilple channels per file)
         for i in tqdm(range(len(filelist)), desc = 'Progress', file=sys.stdout):
             
             # Get predictions (1D-array)
-            data, bounds_pred = self.get_feature_pred(filelist.replace('.h5',''))
+            data, bounds_pred = self.get_feature_pred(filelist[i].replace('.h5',''))
             
             # Convert prediction to binary vector and save as .csv
-            self.save_idx(os.path.join(self.rawpred_path, filelist.replace('.h5','.csv')), data, bounds_pred)
+            modelPredict.save_idx(os.path.join(self.rawpred_path, filelist[i].replace('.h5','.csv')), data, bounds_pred)
+            
+        print('---> Predictions have been generated for: ', self.rawpred_path + '.','\n')
+        print('---------------------------------------------------------------------------\n')
             
                
     def get_feature_pred(self, file_id):
@@ -138,7 +135,7 @@ class modelPredict:
         cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
         
         # Get data and true labels
-        data = get_data(self.gen_path, file_id, ch_num = self.ch_list, inner_path={'data_path':'filt_data'}, load_y = False)
+        data = get_data(self.gen_path, file_id, ch_num = self.ch_list, inner_path={'data_path':self.filt_dir}, load_y = False)
         
         # Extract features and normalize
         x_data, labels = get_features_allch(data,param_list, cross_ch_param_list) # Get features and labels
@@ -158,7 +155,7 @@ class modelPredict:
             # Merge seizures close together
             bounds_pred = merge_close(bounds_pred, merge_margin = 5)
             
-        return bounds_pred 
+        return data, bounds_pred 
 
             
     def save_idx(file_path, data, bounds_pred):
