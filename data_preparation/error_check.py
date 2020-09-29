@@ -20,7 +20,6 @@ from path_helper import get_dir, rem_array
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
     'main_path' : '', # parent path
-    'raw_data_path' : '', # raw data path
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds

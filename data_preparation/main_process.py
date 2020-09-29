@@ -15,14 +15,14 @@ property_dict = {
     'data_dir' : 'raw_data', # raw data directory
     'org_rawpath' : 'reorganized_data', # converted .h5 files
     'main_path' : '',       # parent path
-    'raw_data_path' : '',    # raw data path
     'filt_dir' : 'filt_data', # filt directory 
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
     'new_fs': 100, # new sampling rate
     'chunksize' : 2000, # number of rows to be read into memory
-    'ch_list': [0,1]
+    'ch_list': [0,1],
+    'properties_file':'organized.json',
                  } 
 
 class DataPrep():
@@ -65,12 +65,10 @@ class DataPrep():
                 obj = ErrorCheck(self.properties) # intialize object
                 success = obj.mainfunc() # run file check
                 success_list.append(success) # append to list
-                
-        return all(success_list)
-                
+   
         print('-------------------------- Error Check Completed --------------------------\n')
-        print('---------------------------------------------------------------------------\n')
-
+        print('***************************** Succesful =', all(success_list), '*****************************\n')
+        return all(success_list)
 
 def main_func(main_path):
     """
@@ -93,7 +91,7 @@ def main_func(main_path):
         obj = DataPrep(main_path, property_dict) # instantiate object
         try:
             file_check_success = obj.file_check() # perform file check
-            print('***** file_check_success =', file_check_success)
+            
         except:
             print('---> File check Failed! Operation Aborted.')
             print(sys.exc_info()[0])
@@ -110,18 +108,19 @@ def main_func(main_path):
             for f_path in obj.folders: # iterate over folders      
                 if os.path.isdir(f_path) == 1: # if path exists
                     
-                    # 1 Convert Labchart to .h5 objects
-                    property_dict['main_path'] = f_path # update dict with main path
-                    file_obj = Lab2Mat(property_dict) # instantiate object    
-                    file_obj.mainfunc() # run conversion   
-                    file_obj.save(os.path.join(property_dict['main_path'], 'organized.json')) # save attributes as dictionary  
+        #             # -1 Convert Labchart to .h5 objects
+        #             property_dict['main_path'] = f_path # update dict with main path
+        #             file_obj = Lab2Mat(property_dict) # instantiate object    
+        #             file_obj.mainfunc() # Convert data   
+        #             file_obj.save(os.path.join(property_dict['main_path'], # save attributes as dictionary  
+        #                                        property_dict['properties_file'])) 
                     
-                    # 2 Filter and preprocess data
-                    batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
+        #             # -2 Filter and preprocess data
+        #             batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
                     
-                    # 3 Get Method/Model Predictions
+                    # -3 Get Method/Model Predictions
                     model_obj = modelPredict(property_dict)
-                    model_obj.mainfunc() # run predictions
+                    model_obj.mainfunc() # Get predictions
 
 if __name__ == '__main__':
     

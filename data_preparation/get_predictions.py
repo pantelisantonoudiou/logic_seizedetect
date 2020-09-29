@@ -6,16 +6,23 @@ Created on Mon Jun 15 18:22:20 2020
 """
 
 ##    >>>>>>>>> USER INPUT <<<<<<<<          ##
-# # Add path to raw data folder in following format -> r'PATH'
-# input_path = r'C:\Users\Pante\Desktop\test1\raw_data'
-
-# Add path to model
-# model_path = r'models\cnn_train_ratio_1_ch_1and2_train03.h5'
-
+property_dict = {
+    'main_path' : '',       # parent path
+    'data_dir' : 'raw_data', # raw data directory
+    'org_rawpath' : 'reorganized_data', # converted .h5 files
+    'rawpred_path': 'raw_predictions', # seizure predictions directory
+    'filt_dir' : 'filt_data', # filt directory 
+    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+    'file_ext' : '.adicht', # file extension
+    'win' : 5, # window size in seconds
+    'new_fs': 100, # new sampling rate
+    'chunksize' : 2000, # number of rows to be read into memory
+    'ch_list': [0,1]
+                 } 
                ## ---<<<<<<<< ##              
                
 ### ------------------------ IMPORTS -------------------------------------- ###               
-import os, sys, tables
+import os, sys, json
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -24,8 +31,7 @@ from sklearn.preprocessing import StandardScaler
 # User Defined
 parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 if ( os.path.join(parent_path,'helper') in sys.path) == False:
-    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
-from path_helper import sep_dir    
+    sys.path.extend([parent_path, os.path.join(parent_path,'helper')]) 
 from array_helper import find_szr_idx, merge_close
 from io_getfeatures import get_data, get_features_allch
 from multich_data_prep import Lab2Mat
@@ -39,43 +45,36 @@ class modelPredict:
     """
     
     # class constructor (data retrieval) ### GET CORRECT PARAMETERS
-    def __init__(self, input_path):
+    def __init__(self, property_dict):
         """
         lab2mat(main_path)
 
         Parameters
         ----------
-        input_path : STRING
-            Raw data path.
+        property_dict : Dict, contains essential info for data load and processing
 
         """
-        # pass input path
-        self.input_path = input_path
-
-        # Get general and inner paths
-        self.gen_path, innerpath = sep_dir(input_path,1)
         
-        # load object properties as dict
-        jsonfile = 'organized.json'
-        obj_props = Lab2Mat.load(os.path.join(self.gen_path, jsonfile))
-        self.org_rawpath = obj_props['org_rawpath']
+        # Get main path and load properties file
+        self.gen_path = property_dict['main_path']
+        jsonpath = os.path.join(self.gen_path, 'organized.json') # name of dictionary where propeties are stored
+        obj_props = Lab2Mat.load(jsonpath) # load dict
         
-        # create raw pred path
-        rawpred_path = 'model_predictions'
-        obj_props.update({'rawpred_path' : rawpred_path})
-        self.rawpred_path = os.path.join(self.gen_path, rawpred_path)
+        # Pass input path
+        self.org_rawpath = os.path.join(self.gen_path, property_dict['org_rawpath'])
+               
+        # Need to get from obj props
+        self.filt_dir = property_dict['filt_dir'] # get filt dir
+        self.ch_list = property_dict['ch_list'] # Get ch list from dict
+        
+        # Create raw pred path
+        obj_props.update({'rawpred_path' : property_dict['rawpred_path']})
+        self.rawpred_path = os.path.join(self.gen_path, property_dict['rawpred_path'])
         
         # get sampling rate
         self.fs = round(obj_props['fs'] / obj_props['down_factor'])
         self.win = obj_props['win']
-        
-        self.surround_time = 60 # time around seizures in seconds
-        self.szr_pwr_thresh = 200 # szr power thresh         
-        self.szr_segments =  np.array([2,2],dtype=int)  # segments before and after seizure segment
-        
-        self.ch_list ;## get ch list from dict
-        self.load_path # reorganized path
-        
+
         # Read method parameters into dataframe
         df = pd.read_csv('selected_method.csv')
         self.thresh = np.array(df.loc[0][df.columns.str.contains('Thresh')])
@@ -83,8 +82,11 @@ class modelPredict:
         self.enabled = np.array(df.loc[0][df.columns.str.contains('Enabled')])
         
         # Get feature names
-        self.feature_names = df.columns[df.columns.str.contains('Enabled')] # get
+        self.feature_names = df.columns[df.columns.str.contains('Enabled')]
         self.feature_names = np.array([x.replace('Enabled_', '') for x in  self.feature_names])
+        
+        # write attributes to json file using a dict
+        open(jsonpath, 'w').write(json.dumps(obj_props))
 
 
     def mainfunc(self, model_path):
@@ -98,33 +100,30 @@ class modelPredict:
         model_path : String, Path to model.
         """
        
-        # make path
-        if os.path.exists( self.rawpred_path) is False:
-            os.mkdir( self.rawpred_path)
+        # Create path prediction path
+        if os.path.exists(self.rawpred_path) is False:
+            os.mkdir(self.rawpred_path)
         
-        # get file list
+        # Get file list
         filelist = list(filter(lambda k: '.h5' in k, os.listdir(self.load_path)))
         
         # loop files (multilple channels per file)
-        for i in tqdm(range(len(filelist))):
+        for i in tqdm(range(len(filelist)), desc = 'Progress', file=sys.stdout):
             
-            # get predictions (1D-array)
-            bin_pred = self.get_feature_pred(file_id)
-   
-            # save predictions as .csv
-            file_id = filelist[i].replace('.h5', '.csv')
-            np.savetxt(os.path.join(self.rawpred_path,file_id), ref_pred, delimiter=',',fmt='%i')
+            # Get predictions (1D-array)
+            data, bounds_pred = self.get_feature_pred(filelist.replace('.h5',''))
             
+            # Convert prediction to binary vector and save as .csv
+            self.save_idx(os.path.join(self.rawpred_path, filelist.replace('.h5','.csv')), data, bounds_pred)
             
-
-    ### add method    
+               
     def get_feature_pred(self, file_id):
         """
         get_feature_pred(self, file_id)
 
         Parameters
         ----------
-        file_id : Str
+        file_id : Str, file name with no extension
 
         Returns
         -------
@@ -147,8 +146,8 @@ class modelPredict:
         
         # Get predictions
         thresh = (np.mean(x_data) + self.thresh * np.std(x_data))   # get threshold vector
-        y_pred_array = (x_data > thresh) # get predictions for all conditions
-        y_pred = y_pred_array * self.weights * self.enabled    # get predictions based on weights and selected features
+        y_pred_array = (x_data > thresh)                            # get predictions for all conditions
+        y_pred = y_pred_array * self.weights * self.enabled         # get predictions based on weights and selected features
         y_pred = np.sum(y_pred, axis=1) / np.sum(self.weights * self.enabled) # normalize to weights and selected features
         y_pred = y_pred > 0.5                                       # get popular vote
         bounds_pred = find_szr_idx(y_pred, np.array([0,1]))         # get predicted seizure index
@@ -159,23 +158,55 @@ class modelPredict:
             # Merge seizures close together
             bounds_pred = merge_close(bounds_pred, merge_margin = 5)
             
-            # Remove seizures where a feature (line length or power) is not higher than preceeding region
-            idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
-            bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)    
-        
         return bounds_pred 
 
+            
+    def save_idx(file_path, data, bounds_pred):
+        """
+        Save user predictions to csv file as binary
+    
+        Parameters
+        ----------
+        file_path : Str, path to file save
+        data : 3d Numpy Array (1D = segments, 2D = time, 3D = channel)
+        bounds_pred : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures) 
         
-# # Execute if module runs as main program
-# if __name__ == '__main__':
+        Returns
+        -------
+        None.
     
-#     # init object
-#     obj = modelPredict(input_path)
+        """
+        # pre allocate file with zeros
+        ver_pred = np.zeros(data.shape[0])
     
-#     # get predictions in binary format and store in csv
-#     obj.mainfunc(model_path)    
+        for i in range(bounds_pred.shape[0]): # assign index to 1
+        
+            if bounds_pred[i,0] > 0:
+                # add 1 because csv starts from 1
+                ver_pred[bounds_pred[i,0]+1:bounds_pred[i,1]+1] = 1
+            
+        # save file
+        np.savetxt(file_path, ver_pred, delimiter=',',fmt='%i')
+
+           
+# Execute if module runs as main program
+if __name__ == '__main__':
+
+    if len(sys.argv) == 2:
     
+        # update dict with raw path
+        property_dict['main_path'] = sys.argv[1]
+         
+        # create instance
+        obj = modelPredict(property_dict)
+        
+        # run analysis
+        obj.mainfunc()
     
+    else:
+        print(' ---> Please provide parent directory.\n')
+ 
+
     
    
             

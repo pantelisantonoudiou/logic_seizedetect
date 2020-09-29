@@ -9,7 +9,6 @@ property_dict = {
     'data_dir' : 'raw_data', # raw data directory
     'org_rawpath' : 'reorganized_data', # converted .h5 files
     'main_path' : '', # parent path
-    'raw_data_path' : '', # raw data path
     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
     'file_ext' : '.adicht', # file extension
     'win' : 5, # window size in seconds
@@ -104,7 +103,7 @@ class Lab2Mat:
 
         """
         print('---------------------------------------------------------------------------\n')
-        print('---> Initiating File Conversion for', self.load_path+'.', '\n')
+        print('---> Initiating File Conversion for', self.load_path + '.', '\n')
         
         # make path
         if os.path.exists(self.save_path) is False:

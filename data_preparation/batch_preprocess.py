@@ -24,7 +24,7 @@ property_dict = {
 
 def batch_clean_filt(property_dict, num_channels = [0,1]):
     """
-    
+    batch_clean_filt(property_dict, num_channels = [0,1])
 
     Parameters
     ----------
@@ -37,6 +37,9 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
     None.
 
     """
+    
+    #!!!!!!!!! ADD READ FROM JSON FILE
+    #!!!!!!!!!! SAVE NEW PROPERTIES TO JSON FILE
     
     # Get paths from dict
     main_path = property_dict['main_path'] # main path
