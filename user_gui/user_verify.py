@@ -5,12 +5,9 @@ Created on Tue Sep 29 15:10:48 2020
 @author: panton01
 """
 
-
-
 ## ------>>>>> USER INPUT <<<<<< --------------
-input_path = r'W:\Maguire Lab\Trina\2020\06- June\5142_5143_5160_5220\filt_data'
-file_id = '071220_5160a.csv' # 5221 5222 5223 5162
-ch_list = [0,1] # selected channels
+input_path = r'C:\Users\panton01\Desktop\08-August\5394_5388_5390_5391'
+file_id = '082820_5390a.csv' # 5221 5222 5223 5162
 enable = 1 # set to 1 to select from files that have not been analyzed
 execute = 1 # 1 to run gui, 0 for verification
 # list(filter(lambda k: '.h5' in k, os.listdir(obj.rawdata_path)))
@@ -18,18 +15,16 @@ execute = 1 # 1 to run gui, 0 for verification
 
 ### -------- IMPORTS ---------- ###
 import os, sys, json, tables
-from pathlib import Path
 import numpy as np
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, SpanSelector, TextBox
 # User Defined
 parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 if ( os.path.join(parent_path,'helper') in sys.path) == False:
-    sys.path.extend([parent_path, os.path.join(parent_path,'helper')]) 
-from multich_dataPrep import Lab2Mat
-from array_helper import find_szr_idx, merge_close
+    sys.path.extend([parent_path, os.path.join(parent_path,'helper'),
+                     os.path.join(parent_path,'data_preparation')])
+from multich_data_prep import Lab2Mat
+from array_helper import find_szr_idx
 ### ------------------------------------------ ####
 
        
@@ -49,83 +44,70 @@ class UserVerify:
         input_path : Str, Path to raw data.
 
         """
-        # pass input path
-        self.input_path = input_path
-
-        # Get general path
-        path = Path(input_path)
-        self.gen_path = path.parent
+        # pass general path (parent)
+        self.gen_path = input_path
         
         # load object properties as dict
-        jsonfile = 'organized.json'
-        obj_props = lab2mat.load(os.path.join(self.gen_path, jsonfile))
-        self.rawdata_path = os.path.join(self.gen_path, 'filt_data')
+        jsonpath = os.path.join(self.gen_path, 'organized.json') # name of dictionary where propeties are stored
+        obj_props = Lab2Mat.load(jsonpath)
+        
+        # get data path
+        self.data_path = os.path.join(self.gen_path, obj_props['org_rawpath'], file_id.replace('.csv','.h5') )
+        
+        # get raw prediction path
+        self.pred_path = os.path.join(self.gen_path, obj_props['rawpred_path'], file_id) # rawpred_path verpred_path
         
         # create user verified path
         verpred_path = 'verified_predictions'
         obj_props.update({'verpred_path' : verpred_path})
         self.verpred_path = os.path.join(self.gen_path, verpred_path)
         
-         # make path if it doesn't exist
-        if os.path.exists( self.verpred_path) is False:
-            os.mkdir( self.verpred_path)
-        
         # write attributes to json file using a dict
-        jsonpath = os.path.join(self.gen_path, jsonfile)
         open(jsonpath, 'w').write(json.dumps(obj_props))
         
+        # make path if it doesn't exist
+        if os.path.exists( self.verpred_path) is False:
+            os.mkdir( self.verpred_path)
+
         # get sampling rate
         self.fs = round(obj_props['fs'] / obj_props['down_factor'])
-        self.win = obj_props['win']
         
- 
-    def get_feature_pred(self, file_id):
+        # get win in seconds
+        self.win = obj_props['win'] 
+
+    def main_func(self, filename):
         """
-        get_feature_pred(self, file_id)
+        main_func(self, filename)
 
         Parameters
         ----------
-        file_id : Str
+        filename : String
 
         Returns
         -------
         data : 3d Numpy Array (1D = segments, 2D = time, 3D = channel)
-        bounds_pred : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures)
+        idx_bounds : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures)
 
         """
         
-        # Define parameter list
-        param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
-                      features.get_envelope_max_diff,) # single channel features
-        cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
+        print('File being analyzed: ', file_id)
+
+        # get data and predictions
+        bin_pred = np.loadtxt(self.pred_path, delimiter=',', skiprows=0)
+        idx_bounds = find_szr_idx(bin_pred, np.array([0,1]))
         
-        # Get data and true labels
-        data = get_data(self.gen_path, file_id, ch_num = ch_list, inner_path={'data_path':'filt_data'}, load_y = False)
+        ## ADD refine seizures?
+        # bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)   
+           
+        # load raw data for visualization
+        f = tables.open_file(self.data_path, mode='r')
+        data = f.root.data[:]
+        f.close()
         
-        # Extract features and normalize
-        x_data, labels = get_features_allch(data,param_list, cross_ch_param_list) # Get features and labels
-        x_data = StandardScaler().fit_transform(x_data) # Normalize data
+        # check whether to continue
+        print('>>>>',idx_bounds.shape[0] ,'seizures detected')
         
-        # Get predictions
-        thresh = (np.mean(x_data) + self.thresh * np.std(x_data))   # get threshold vector
-        y_pred_array = (x_data > thresh) # get predictions for all conditions
-        y_pred = y_pred_array * self.weights * self.enabled    # get predictions based on weights and selected features
-        y_pred = np.sum(y_pred, axis=1) / np.sum(self.weights * self.enabled) # normalize to weights and selected features
-        y_pred = y_pred > 0.5                                       # get popular vote
-        bounds_pred = find_szr_idx(y_pred, np.array([0,1]))         # get predicted seizure index
-        
-        # If seizures are detected proceed to refine them
-        if bounds_pred.shape[0] > 0:
-            
-            # Merge seizures close together
-            bounds_pred = merge_close(bounds_pred, merge_margin = 5)
-            
-            # Remove seizures where a feature (line length or power) is not higher than preceeding region
-            idx = np.where(np.char.find(self.feature_names,'line_length_0')==0)[0][0]
-            bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)    
-        
-        return bounds_pred
-         
+        return data, idx_bounds
     
     def refine_based_on_surround(self, feature, idx):
         """
@@ -181,41 +163,6 @@ class UserVerify:
          np.savetxt(os.path.join(self.verpred_path,file_id), ver_pred, delimiter=',',fmt='%i')
          print('Verified predictions for ', file_id, ' were saved')   
             
-
-    
-    def main_func(self, filename):
-        """
-        main_func(self, filename)
-
-        Parameters
-        ----------
-        filename : String
-
-        Returns
-        -------
-        data : 3d Numpy Array (1D = segments, 2D = time, 3D = channel)
-        idx_bounds : 2D Numpy Array (rows = seizures, cols = start and end points of detected seizures)
-
-        """
-        
-        print('File being analyzed: ', file_id)
-
-        # get data and predictions
-        idx_bounds = self.get_feature_pred(file_id.replace('.csv',''))
-           
-        # load raw data for visualization
-        filepath = os.path.join(self.gen_path, 'reorganized_data' ,filename.replace('.csv','.h5') )
-        f = tables.open_file(filepath, mode='r')
-        data = f.root.data[:]
-        f.close()
-        
-        # check whether to continue
-        print('>>>>',idx_bounds.shape[0] ,'seizures detected')
-        
-        return data,idx_bounds
-
-        
-   
         
 # Execute if module runs as main program
 if __name__ == '__main__' :

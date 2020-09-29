@@ -16,7 +16,6 @@ def find_nearest(array,value,**kwargs):
     Parameters
     ----------
     array : list/numpy array
-        DESCRIPTION.
     value : int/float
         value to be found.
     **kwargs : TYPE
@@ -112,7 +111,7 @@ def find_szr_idx(pred_array,bounds):
    
     for i in range(len(idx)):
         idx_bounds[i,0] = find_nearest(ref_pred,0,start = idx[i],order = -1) + 1
-        idx_bounds[i,1] = find_nearest(ref_pred,0,start = idx[i],order = 1)
+        idx_bounds[i,1] = find_nearest(ref_pred,0,start = idx[i],order = 1) - 1
         
     # recreate original boundaries that were trimmed
     idx_bounds[:,0] -= bounds[0]

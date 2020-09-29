@@ -85,8 +85,8 @@ class matplotGui(object):
            for i in range(self.idx_out.shape[0]): # assign index to 1
            
                if self.idx_out[i,0] > 0:
-                   # add 1 because csv starts from 1
-                   ver_pred[self.idx_out[i,0]+1:self.idx_out[i,1]+1] = 1
+                   # add 1 to stop bound because of python indexing
+                   ver_pred[self.idx_out[i,0]:self.idx_out[i,1]+1] = 1
                
            # save file
            np.savetxt(os.path.join(self.verpred_path,self.file_id), ver_pred, delimiter=',',fmt='%i')
