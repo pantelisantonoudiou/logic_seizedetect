@@ -28,7 +28,7 @@ class UserVerify:
     """
     
     # class constructor (data retrieval)
-    def __init__(self, input_path, not_analyzed_only):
+    def __init__(self, input_path):
         """
         lab2mat(main_path)
 
@@ -39,7 +39,6 @@ class UserVerify:
         """
         # pass general path (parent)
         self.gen_path = input_path
-        self.not_analyzed_only = not_analyzed_only
         
         # load object properties as dict
         jsonpath = os.path.join(self.gen_path, 'organized.json') # name of dictionary where propeties are stored
@@ -86,16 +85,19 @@ class UserVerify:
         # get all files in user verified predictions
         verpredlist = list(filter(lambda k: '.csv' in k, os.listdir(self.verpred_path)))
        
-        if  self.not_analyzed_only == 1:
-            print('-> Chooze from files not analyzed:')
-            filelist = list(set(rawpredlist) - set(verpredlist))
-        else:
-            print('-> Choose from all files (including analyzed):')
-            filelist = rawpredlist
+        # get unique list
+        not_analyzed_filelist = list(set(rawpredlist) - set(verpredlist))
         
+        # remaining filelist
+        analyzed_filelist = list(set(rawpredlist) - set(not_analyzed_filelist))
+        
+        # filelist
+        filelist = [' *** ' + s for s in analyzed_filelist] +  not_analyzed_filelist           
+        
+        # select from command list
         title = 'Please select file for analysis: '
-        option, index = pick(filelist, title)
-        return option
+        option, index = pick(filelist, title, indicator = '-> ')
+        return option.replace(' *** ','')
 
 
     def main_func(self, file_id):
@@ -195,14 +197,11 @@ if __name__ == '__main__' :
     
     # ------>>>>> USER INPUT <<<<<< --------------
     input_path = r'C:\Users\panton01\Desktop\08-August\5394_5388_5390_5391'
-    # file_id = '082820_5390a.csv' # 5221 5222 5223 5162
-    not_analyzed_only = 1 # set to 1 to select from files that have not been analyzed
+    # file_id = '082820_5390a.csv'
     # -------<<<<<<<<<<
     
-    # module_main(input_path)
-    
     # create instance
-    obj = UserVerify(input_path, not_analyzed_only)
+    obj = UserVerify(input_path)
     file_id = obj.select_file() # user file selection
     data, idx_bounds = obj.main_func(file_id) # get data and seizure index
     

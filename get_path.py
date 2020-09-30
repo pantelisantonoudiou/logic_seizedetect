@@ -27,7 +27,7 @@ def main_func():
         return False
     
     # create dict for export
-    to_export = {'main_path':path, 'not_analyzed_only':1}
+    to_export = {'main_path':path}
     
     # Load config file 
     try:

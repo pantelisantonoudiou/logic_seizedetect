@@ -22,15 +22,13 @@ if __name__ == '__main__' :
     
     # Get variables from config dictionary
     input_path = config['main_path']
-    not_analyzed_only = config['not_analyzed_only']
 
     # Create instance
-    obj = UserVerify(input_path, not_analyzed_only)
+    obj = UserVerify(input_path)
     file_id = obj.select_file() # user file selection
-    data, idx_bounds = obj.main_func(file_id)
+    data, idx_bounds = obj.main_func(file_id) # get data and seizure index
     
     if idx_bounds is not False:
-        
         if idx_bounds.shape[0] == 0: # check for zero seizures
             obj.save_emptyidx(data.shape[0],file_id)
             
