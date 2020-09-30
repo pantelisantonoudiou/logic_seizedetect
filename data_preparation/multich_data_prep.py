@@ -25,11 +25,11 @@ from scipy import signal
 from math import floor
 from string import ascii_lowercase
 # User Defined
-parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-if (os.path.join(parent_path,'helper') in sys.path) == False:
-    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
+# parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+# if (os.path.join(parent_path,'helper') in sys.path) == False:
+#     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
 import adi
-from path_helper import get_dir, rem_array
+from helper.path_helper import get_dir, rem_array
 ### ------------------------------------------------------------------------###
 
 

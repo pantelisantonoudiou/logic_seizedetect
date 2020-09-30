@@ -9,12 +9,12 @@ Created on Wed Jul 29 14:43:22 2020
 import os, sys, json
 from tqdm import tqdm
 # User Defined
-parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-if (os.path.join(parent_path,'helper') in sys.path) == False:
-    sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
-from io_getfeatures import get_data, save_data
-from preprocess import preprocess_data
-from multich_data_prep import Lab2Mat
+# parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+# if (os.path.join(parent_path,'helper') in sys.path) == False:
+#     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
+# from io_getfeatures import get_data, save_data
+from data_preparation.preprocess import preprocess_data
+from data_preparation.multich_data_prep import Lab2Mat
 ### ----------------------------------------------- ###
 
 property_dict = {
@@ -39,7 +39,7 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
 
     """
     
-     # Get main path and load properties file
+    # Get main path and load properties file
     jsonpath = os.path.join(property_dict['main_path'], 'organized.json') # name of dictionary where propeties are stored
     obj_props = Lab2Mat.load(jsonpath) # load dict
     
