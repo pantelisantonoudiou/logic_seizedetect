@@ -15,11 +15,12 @@ execute = 1 # 1 to run gui, 0 for verification
 
 ### -------- IMPORTS ---------- ###
 import os, sys, json, tables
+from pick import pick
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, SpanSelector, TextBox
 # User Defined
-parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
+parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 if ( os.path.join(parent_path,'helper') in sys.path) == False:
     sys.path.extend([parent_path, os.path.join(parent_path,'helper'),
                      os.path.join(parent_path,'data_preparation')])
@@ -52,10 +53,10 @@ class UserVerify:
         obj_props = Lab2Mat.load(jsonpath)
         
         # get data path
-        self.data_path = os.path.join(self.gen_path, obj_props['org_rawpath'], file_id.replace('.csv','.h5') )
+        self.org_rawpath = os.path.join(self.gen_path, obj_props['org_rawpath'])
         
         # get raw prediction path
-        self.pred_path = os.path.join(self.gen_path, obj_props['rawpred_path'], file_id) # rawpred_path verpred_path
+        self.rawpred_path = os.path.join(self.gen_path, obj_props['rawpred_path'])
         
         # create user verified path
         verpred_path = 'verified_predictions'
@@ -73,7 +74,34 @@ class UserVerify:
         self.fs = round(obj_props['fs'] / obj_props['down_factor'])
         
         # get win in seconds
-        self.win = obj_props['win'] 
+        self.win = obj_props['win']
+        
+    def select_file(self):
+        """
+        select_file(self)
+        Returns
+        -------
+        filelist : List
+            Containing expeirment names.
+
+        """
+       
+        # get all files in raw predictions folder 
+        rawpredlist = list(filter(lambda k: '.csv' in k, os.listdir(self.rawpred_path)))
+       
+        # get all files in user verified predictions
+        verpredlist = list(filter(lambda k: '.csv' in k, os.listdir(self.verpred_path)))
+       
+        if enable == 1:
+            print('-> Chooze from files not analyzed:')
+            filelist = list(set(rawpredlist) - set(verpredlist))
+        else:
+            print('-> Choose from all files (including analyzed):')
+            filelist = rawpredlist
+        
+        title = 'Please select file for analysis: '
+        option, index = pick(filelist, title)
+        return option
 
     def main_func(self, filename):
         """
@@ -93,14 +121,16 @@ class UserVerify:
         print('File being analyzed: ', file_id)
 
         # get data and predictions
-        bin_pred = np.loadtxt(self.pred_path, delimiter=',', skiprows=0)
+        pred_path = os.path.join(self.rawpred_path, file_id)
+        bin_pred = np.loadtxt(pred_path, delimiter=',', skiprows=0)
         idx_bounds = find_szr_idx(bin_pred, np.array([0,1]))
         
         ## ADD refine seizures?
         # bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)   
            
         # load raw data for visualization
-        f = tables.open_file(self.data_path, mode='r')
+        data_path = os.path.join(self.org_rawpath, filename.replace('.csv','.h5'))
+        f = tables.open_file(data_path, mode='r')
         data = f.root.data[:]
         f.close()
         
@@ -109,6 +139,7 @@ class UserVerify:
         
         return data, idx_bounds
     
+    ## NOT ADDED YET
     def refine_based_on_surround(self, feature, idx):
         """
         refine_based_on_surround(self,data,idx)
@@ -167,8 +198,9 @@ class UserVerify:
 # Execute if module runs as main program
 if __name__ == '__main__' :
     
-    # # create instance
+    # create instance
     obj = UserVerify(input_path)
+    file_id = obj.select_file() # user file selection
     data, idx_bounds = obj.main_func(file_id)
     
     if idx_bounds is not False and execute == 1:
@@ -208,6 +240,7 @@ if __name__ == '__main__' :
             # set useblit True on gtkagg for enhanced performance
             span = SpanSelector(ax, callback.onselect, 'horizontal', useblit=True,
                 rectprops=dict(alpha=0.5, facecolor='red'))
+            plt.show()
     
     
 

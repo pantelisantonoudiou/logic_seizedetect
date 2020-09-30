@@ -96,30 +96,37 @@ def main_func(main_path):
             print(sys.exc_info()[0])
 
     else:
-        print('\n****** The input <', main_path ,'> is not a path. Please try again.******\n')
+        print('\n************ The input', '"'+ main_path +'"' ,'is not a valid path. Please try again ************\n')
         return False 
     
-    if file_check_success is True:
-        # Verify whether to proceed
-        answer = input('-> File Check Completed. Dou want to proceed? (y/n)\n')    
+    if file_check_success is True:   
         
-        if answer == 'y':
-            for f_path in obj.folders: # iterate over folders      
-                if os.path.isdir(f_path) == 1: # if path exists
-                    
-                    # -1 Convert Labchart to .h5 objects
-                    property_dict['main_path'] = f_path # update dict with main path
-                    file_obj = Lab2Mat(property_dict) # instantiate object    
-                    file_obj.mainfunc() # Convert data   
-
-                    # -2 Filter and preprocess data
-                    batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
-                    
-                    # -3 Get Method/Model Predictions
-                    model_obj = modelPredict(property_dict)
-                    model_obj.mainfunc() # Get predictions
-                    
-            print('\n************************* All Steps Completed *************************n')
+        answer = '' # init empty answer
+        while answer != 'y' and answer != 'n': # repeat until get yes or no
+        
+            # Verify whether to proceed
+            answer = input('-> File Check Completed. Dou want to proceed (y/n)? \n') 
+        
+            if answer == 'y':
+                for f_path in obj.folders: # iterate over folders      
+                    if os.path.isdir(f_path) == 1: # if path exists
+                        
+                        # -1 Convert Labchart to .h5 objects
+                        property_dict['main_path'] = f_path # update dict with main path
+                        file_obj = Lab2Mat(property_dict) # instantiate object    
+                        file_obj.mainfunc() # Convert data   
+    
+                        # -2 Filter and preprocess data
+                        batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
+                        
+                        # -3 Get Method/Model Predictions
+                        model_obj = modelPredict(property_dict)
+                        model_obj.mainfunc() # Get predictions
+                        
+                print('\n************************* All Steps Completed *************************n')
+                
+            elif answer == 'n':
+                print('---> No Further Action Will Be Performed.\n')
 
 if __name__ == '__main__':
     

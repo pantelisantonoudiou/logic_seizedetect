@@ -141,7 +141,6 @@ class matplotGui(object):
         ax2.set_title('EMG', loc ='left')
         ax1.set_ylabel('(V) Norm Amp.')
         ax2.set_xlabel('Time (Sec.)')
-
      
         # concatenate segments
         if 'usr_start' in kwargs: # plot user define
@@ -154,8 +153,7 @@ class matplotGui(object):
         # plot highlighted region
         ax.plot(t,y, color='orange', linewidth=0.75, alpha=0.9)
         fig.canvas.draw()
-        
-        
+          
         
     ## ------ Mouse Button Press ------ ##   
     def forward(self, event):
