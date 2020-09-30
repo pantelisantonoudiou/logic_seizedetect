@@ -5,14 +5,6 @@ Created on Tue Sep 29 15:10:48 2020
 @author: panton01
 """
 
-## ------>>>>> USER INPUT <<<<<< --------------
-input_path = r'C:\Users\panton01\Desktop\08-August\5394_5388_5390_5391'
-file_id = '082820_5390a.csv' # 5221 5222 5223 5162
-enable = 1 # set to 1 to select from files that have not been analyzed
-execute = 1 # 1 to run gui, 0 for verification
-# list(filter(lambda k: '.h5' in k, os.listdir(obj.rawdata_path)))
-## -------<<<<<<<<<<
-
 ### -------- IMPORTS ---------- ###
 import os, sys, json, tables
 from pick import pick
@@ -31,12 +23,12 @@ from array_helper import find_szr_idx
        
 class UserVerify:
     """
-    Class for User verification of detected seizures
+    Class for User verification of detected seizures.
     
     """
     
     # class constructor (data retrieval)
-    def __init__(self, input_path):
+    def __init__(self, input_path, not_analyzed_only):
         """
         lab2mat(main_path)
 
@@ -47,6 +39,7 @@ class UserVerify:
         """
         # pass general path (parent)
         self.gen_path = input_path
+        self.not_analyzed_only = not_analyzed_only
         
         # load object properties as dict
         jsonpath = os.path.join(self.gen_path, 'organized.json') # name of dictionary where propeties are stored
@@ -75,14 +68,15 @@ class UserVerify:
         
         # get win in seconds
         self.win = obj_props['win']
+   
         
     def select_file(self):
         """
         select_file(self)
+        
         Returns
         -------
-        filelist : List
-            Containing expeirment names.
+        option : Str, selection of file id
 
         """
        
@@ -92,7 +86,7 @@ class UserVerify:
         # get all files in user verified predictions
         verpredlist = list(filter(lambda k: '.csv' in k, os.listdir(self.verpred_path)))
        
-        if enable == 1:
+        if  self.not_analyzed_only == 1:
             print('-> Chooze from files not analyzed:')
             filelist = list(set(rawpredlist) - set(verpredlist))
         else:
@@ -103,13 +97,14 @@ class UserVerify:
         option, index = pick(filelist, title)
         return option
 
-    def main_func(self, filename):
+
+    def main_func(self, file_id):
         """
-        main_func(self, filename)
+        main_func(self, file_id)
 
         Parameters
         ----------
-        filename : String
+        file_id : String
 
         Returns
         -------
@@ -118,18 +113,18 @@ class UserVerify:
 
         """
         
-        print('File being analyzed: ', file_id)
+        print('-> File being analyzed: ', file_id,'\n')
 
-        # get data and predictions
-        pred_path = os.path.join(self.rawpred_path, file_id)
-        bin_pred = np.loadtxt(pred_path, delimiter=',', skiprows=0)
-        idx_bounds = find_szr_idx(bin_pred, np.array([0,1]))
+        # Get predictions
+        pred_path = os.path.join(self.rawpred_path, file_id) # get path
+        bin_pred = np.loadtxt(pred_path, delimiter=',', skiprows=0) # get predictions
+        idx_bounds = find_szr_idx(bin_pred, np.array([0,1])) # find seizure oundaries
         
         ## ADD refine seizures?
         # bounds_pred = self.refine_based_on_surround(x_data[:,idx], bounds_pred)   
            
         # load raw data for visualization
-        data_path = os.path.join(self.org_rawpath, filename.replace('.csv','.h5'))
+        data_path = os.path.join(self.org_rawpath, file_id.replace('.csv','.h5'))
         f = tables.open_file(data_path, mode='r')
         data = f.root.data[:]
         f.close()
@@ -192,18 +187,26 @@ class UserVerify:
          
          # save file
          np.savetxt(os.path.join(self.verpred_path,file_id), ver_pred, delimiter=',',fmt='%i')
-         print('Verified predictions for ', file_id, ' were saved')   
-            
-        
+         print('Verified predictions for ', file_id, ' were saved\n')
+         
+     
 # Execute if module runs as main program
 if __name__ == '__main__' :
     
-    # create instance
-    obj = UserVerify(input_path)
-    file_id = obj.select_file() # user file selection
-    data, idx_bounds = obj.main_func(file_id)
+    # ------>>>>> USER INPUT <<<<<< --------------
+    input_path = r'C:\Users\panton01\Desktop\08-August\5394_5388_5390_5391'
+    # file_id = '082820_5390a.csv' # 5221 5222 5223 5162
+    not_analyzed_only = 1 # set to 1 to select from files that have not been analyzed
+    # -------<<<<<<<<<<
     
-    if idx_bounds is not False and execute == 1:
+    # module_main(input_path)
+    
+    # create instance
+    obj = UserVerify(input_path, not_analyzed_only)
+    file_id = obj.select_file() # user file selection
+    data, idx_bounds = obj.main_func(file_id) # get data and seizure index
+    
+    if idx_bounds is not False:
         
         if idx_bounds.shape[0] == 0: # check for zero seizures
             obj.save_emptyidx(data.shape[0])

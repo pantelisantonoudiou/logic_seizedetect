@@ -90,7 +90,7 @@ class matplotGui(object):
                
            # save file
            np.savetxt(os.path.join(self.verpred_path,self.file_id), ver_pred, delimiter=',',fmt='%i')
-           print('Verified predictions for ', self.file_id, ' were saved')    
+           print('Verified predictions for ', self.file_id, ' were saved.\n')    
         
         
     def get_index(self):
@@ -209,7 +209,7 @@ class matplotGui(object):
             plt.close()
             self.save_idx() # save file to csv
             print(self.idx_out)
-            print(self.idx_out.shape[0]-np.sum(self.idx_out[:,0] == -1),'Seizures accepted.')
+            print(self.idx_out.shape[0]-np.sum(self.idx_out[:,0] == -1),'Seizures accepted.\n')
             
     ## ----- User Selection ----##        
     def onselect(self,xmin, xmax):
