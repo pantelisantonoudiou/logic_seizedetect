@@ -173,7 +173,7 @@ class UserVerify:
         return idx
         
                
-    def save_emptyidx(self,data_len):
+    def save_emptyidx(self, data_len,file_id):
          """
          Save user predictions to csv file as binary
         
@@ -186,7 +186,7 @@ class UserVerify:
          ver_pred = np.zeros(data_len)
          
          # save file
-         np.savetxt(os.path.join(self.verpred_path,file_id), ver_pred, delimiter=',',fmt='%i')
+         np.savetxt(os.path.join(self.verpred_path, file_id), ver_pred, delimiter=',',fmt='%i')
          print('Verified predictions for ', file_id, ' were saved\n')
          
      
@@ -209,7 +209,7 @@ if __name__ == '__main__' :
     if idx_bounds is not False:
         
         if idx_bounds.shape[0] == 0: # check for zero seizures
-            obj.save_emptyidx(data.shape[0])
+            obj.save_emptyidx(data.shape[0],file_id)
             
         else: # otherwise proceed with gui creation
     

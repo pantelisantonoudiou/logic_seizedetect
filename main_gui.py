@@ -32,7 +32,7 @@ if __name__ == '__main__' :
     if idx_bounds is not False:
         
         if idx_bounds.shape[0] == 0: # check for zero seizures
-            obj.save_emptyidx(data.shape[0])
+            obj.save_emptyidx(data.shape[0],file_id)
             
         else: # otherwise proceed with gui creation
     
