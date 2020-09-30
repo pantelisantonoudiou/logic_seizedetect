@@ -6,10 +6,10 @@ Created on Fri Sep 25 18:15:00 2020
 """
 
 import os, sys
-from error_check import ErrorCheck
-from multich_data_prep import Lab2Mat
-from batch_preprocess import batch_clean_filt
-from get_predictions import modelPredict
+from data_preparation.error_check import ErrorCheck
+from data_preparation.multich_data_prep import Lab2Mat
+from data_preparation.batch_preprocess import batch_clean_filt
+from data_preparation.get_predictions import modelPredict
 
 property_dict = {
     'data_dir' : 'raw_data', # raw data directory
