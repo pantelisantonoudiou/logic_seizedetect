@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # User Defined
-# parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
+parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 # if ( os.path.join(parent_path,'helper') in sys.path) == False:
 #     sys.path.extend([parent_path, os.path.join(parent_path,'helper'),
 #                      os.path.join(parent_path,'data_preparation')]) 
