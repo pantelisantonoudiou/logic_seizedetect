@@ -4,15 +4,10 @@ Semi-automated seizure detection toolbox.
 
 ## How to Use
 
-***A)*** Data preparation and batch predictions
-
-***B)*** User Verification 
-
 ### A) Data preparation and batch predictions
-
     python main_process.py
 
-### B --- USER VERIFICATION ---
+### B) User Verification
     python get_path.py
     python main_gui.py
 
