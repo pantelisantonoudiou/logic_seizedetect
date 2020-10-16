@@ -4,19 +4,6 @@ Created on Thu Apr  9 10:11:27 2020
 @author: panton01
 """
 
-### ----------------------- USER INPUT --------------------------------- ###
-property_dict = {
-    'data_dir' : 'raw_data', # raw data directory
-    'org_rawpath' : 'reorganized_data', # converted .h5 files
-    'main_path' : '', # parent path
-    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
-    'file_ext' : '.adicht', # file extension
-    'win' : 5, # window size in seconds
-    'new_fs': 100, # new sampling rate
-    'chunksize' : 2000, # number of rows to be read into memory
-                 } 
-### ------------------------------------------------------------------------###
-
 ### ------------------------ IMPORTS -------------------------------------- ###
 import os, sys, tables, json
 from tqdm import tqdm
@@ -25,9 +12,6 @@ from scipy import signal
 from math import floor
 from string import ascii_lowercase
 # User Defined
-# parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# if (os.path.join(parent_path,'helper') in sys.path) == False:
-#     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
 import adi
 from helper.path_helper import get_dir, rem_array
 ### ------------------------------------------------------------------------###
@@ -274,6 +258,18 @@ class Lab2Mat:
 
 # Execute if module runs as main program
 if __name__ == '__main__':
+    
+    ### ------ USER INPUT ------ ###
+    property_dict = {
+        'data_dir' : 'raw_data', # raw data directory
+        'org_rawpath' : 'reorganized_data', # converted .h5 files
+        'main_path' : '', # parent path
+        'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+        'file_ext' : '.adicht', # file extension
+        'win' : 5, # window size in seconds
+        'new_fs': 100, # new sampling rate
+        'chunksize' : 2000, # number of rows to be read into memory
+                     } 
     
     if len(sys.argv) == 2:
         

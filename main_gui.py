@@ -4,12 +4,12 @@ Created on Wed Sep 30 12:27:27 2020
 
 @author: panton01
 """
-### -------- IMPORTS ---------- ###
+### ----------------- IMPORTS ----------------- ###
 import json
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, SpanSelector, TextBox
 from user_gui.user_verify import UserVerify
-### ------------------------------------------ ####
+### ------------------------------------------ ###
 
 if __name__ == '__main__' :
     

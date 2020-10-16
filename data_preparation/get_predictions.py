@@ -3,23 +3,7 @@
 Created on Mon Jun 15 18:22:20 2020
 
 @author: Pante
-"""
-
-##    >>>>>>>>> USER INPUT <<<<<<<<          ##
-property_dict = {
-    'main_path' : '',       # parent path
-    'data_dir' : 'raw_data', # raw data directory
-    'org_rawpath' : 'reorganized_data', # converted .h5 files
-    'rawpred_path': 'raw_predictions', # seizure predictions directory
-    'filt_dir' : 'filt_data', # filt directory 
-    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
-    'file_ext' : '.adicht', # file extension
-    'win' : 5, # window size in seconds
-    'new_fs': 100, # new sampling rate
-    'chunksize' : 2000, # number of rows to be read into memory
-    'ch_list': [0,1]
-                 } 
-               ## ---<<<<<<<< ##              
+"""             
                
 ### ------------------------ IMPORTS -------------------------------------- ###               
 import os, sys, json
@@ -29,15 +13,11 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # User Defined
 parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
-# if ( os.path.join(parent_path,'helper') in sys.path) == False:
-#     sys.path.extend([parent_path, os.path.join(parent_path,'helper'),
-#                      os.path.join(parent_path,'data_preparation')]) 
 from helper.array_helper import find_szr_idx, merge_close
 from helper.io_getfeatures import get_data, get_features_allch
 from data_preparation.multich_data_prep import Lab2Mat
 import features
 ### ------------------------------------------------------------------------###
-
               
 class modelPredict:
     """
@@ -188,6 +168,22 @@ class modelPredict:
            
 # Execute if module runs as main program
 if __name__ == '__main__':
+    
+    ##    >>>>>>>>> USER INPUT <<<<<<<<          ##
+    property_dict = {
+        'main_path' : '',       # parent path
+        'data_dir' : 'raw_data', # raw data directory
+        'org_rawpath' : 'reorganized_data', # converted .h5 files
+        'rawpred_path': 'raw_predictions', # seizure predictions directory
+        'filt_dir' : 'filt_data', # filt directory 
+        'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+        'file_ext' : '.adicht', # file extension
+        'win' : 5, # window size in seconds
+        'new_fs': 100, # new sampling rate
+        'chunksize' : 2000, # number of rows to be read into memory
+        'ch_list': [0,1]
+                     } 
+                   ## ---<<<<<<<< ## 
 
     if len(sys.argv) == 2:
     

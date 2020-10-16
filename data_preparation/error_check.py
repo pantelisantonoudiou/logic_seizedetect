@@ -10,22 +10,9 @@ import os, sys
 from tqdm import tqdm
 import numpy as np
 # User Defined
-# parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# if (os.path.join(parent_path,'helper') in sys.path) == False:
-#     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
 import adi
 from helper.path_helper import get_dir, rem_array
 #### ------------------------------------------------ ###
-
-property_dict = {
-    'data_dir' : 'raw_data', # raw data directory
-    'main_path' : '', # parent path
-    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
-    'file_ext' : '.adicht', # file extension
-    'win' : 5, # window size in seconds
-    'new_fs': 100, # new sampling rate
-    'chunksize' : 2000, # number of rows to be read into memory
-                 } 
 
 class ErrorCheck:
     """
@@ -45,6 +32,7 @@ class ErrorCheck:
         property_dict : dict, with essential variables for file check
 
         """
+  
         # Declare instance properties
         self.raw_data_path = os.path.join(property_dict['main_path'], property_dict['data_dir']) # raw path
         self.ch_struct = property_dict['ch_struct'] # channel structure
@@ -272,9 +260,20 @@ class ErrorCheck:
 # Execute if module runs as main program
 if __name__ == '__main__':
     
+    ### ------ USER INPUT ------ ###
+    property_dict = {
+    'data_dir' : 'raw_data', # raw data directory
+    'main_path' : '', # parent path
+    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+    'file_ext' : '.adicht', # file extension
+    'win' : 5, # window size in seconds
+    'new_fs': 100, # new sampling rate
+    'chunksize' : 2000, # number of rows to be read into memory
+                  } 
+    
     if len(sys.argv) == 2:
         
-        # update dict with raw path
+        # update dict with path to parent directory
         property_dict['main_path'] = sys.argv[1]
      
         # create instance

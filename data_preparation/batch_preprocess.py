@@ -9,19 +9,11 @@ Created on Wed Jul 29 14:43:22 2020
 import os, sys, json
 from tqdm import tqdm
 # User Defined
-# parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# if (os.path.join(parent_path,'helper') in sys.path) == False:
-#     sys.path.extend([parent_path, os.path.join(parent_path,'helper')])
-# from io_getfeatures import get_data, save_data
+from helper.io_getfeatures import get_data, save_data
 from data_preparation.preprocess import preprocess_data
 from data_preparation.multich_data_prep import Lab2Mat
 ### ----------------------------------------------- ###
 
-property_dict = {
-    'main_path' : '', # parent dir
-    'org_rawpath' : 'reorganized_data', # converted .h5 files
-    'filt_dir' : 'filt_data', # filt directory 
-    } 
 
 def batch_clean_filt(property_dict, num_channels = [0,1]):
     """
@@ -81,9 +73,13 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
         
 if __name__ == '__main__':
     
-    # # get path from user
-    # main_path = input('Enter data path:')
-    
+    ### ------ USER INPUT ------ ###
+    property_dict = {
+    'main_path' : '', # path to parent dir
+    'org_rawpath' : 'reorganized_data', # converted .h5 files
+    'filt_dir' : 'filt_data', # filt directory 
+    } 
+        
     if len(sys.argv)>1:
         main_path = sys.argv[1]
         

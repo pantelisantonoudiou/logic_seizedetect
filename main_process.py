@@ -5,26 +5,28 @@ Created on Fri Sep 25 18:15:00 2020
 @author: panton01
 """
 
-import os, sys
+### ------------------- Imports ------------------- ###
+import os, json
 from data_preparation.error_check import ErrorCheck
 from data_preparation.multich_data_prep import Lab2Mat
 from data_preparation.batch_preprocess import batch_clean_filt
 from data_preparation.get_predictions import modelPredict
+### ----------------------------------------------- ###
 
-property_dict = {
-    'data_dir' : 'raw_data', # raw data directory
-    'org_rawpath' : 'reorganized_data', # converted .h5 files
-    'rawpred_path': 'raw_predictions', # seizure predictions directory
-    'main_path' : '',       # parent path
-    'filt_dir' : 'filt_data', # filt directory 
-    'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
-    'file_ext' : '.adicht', # file extension
-    'win' : 5, # window size in seconds
-    'new_fs': 100, # new sampling rate
-    'chunksize' : 2000, # number of rows to be read into memory
-    'ch_list': [0,1],
-    'properties_file':'organized.json',
-                 } 
+# property_dict = {
+#     'data_dir' : 'raw_data', # raw data directory
+#     'org_rawpath' : 'reorganized_data', # converted .h5 files
+#     'rawpred_path': 'raw_predictions', # seizure predictions directory
+#     'main_path' : '',       # parent path
+#     'filt_dir' : 'filt_data', # filt directory 
+#     'ch_struct' : ['vhpc', 'fc', 'emg'], # channel structure
+#     'file_ext' : '.adicht', # file extension
+#     'win' : 5, # window size in seconds
+#     'new_fs': 100, # new sampling rate
+#     'chunksize' : 2000, # number of rows to be read into memory
+#     'ch_list': [0,1],
+#     'properties_file':'organized.json',
+#                  } 
 
 class DataPrep():
     """
@@ -71,12 +73,13 @@ class DataPrep():
         print('***************************** Succesful =', all(success_list), '*****************************\n')
         return all(success_list)
 
-def main_func(main_path):
+def main_func(main_path, property_dict):
     """
 
     Parameters
     ----------
     main_path : Str, Path to parent directory containing animal folders
+    property_dict: Dict, Configuration settings (Check Documentation for info)
 
     Returns
     -------
@@ -86,14 +89,19 @@ def main_func(main_path):
     
     # File Check
     file_check_success = False
+    
     if os.path.isdir(main_path): 
-        obj = DataPrep(main_path, property_dict) # instantiate object
+        
+        # instantiate object
+        obj = DataPrep(main_path, property_dict) 
         try:
-            file_check_success = obj.file_check() # perform file check
+            # perform file check
+            file_check_success = obj.file_check() 
             
-        except:
-            print('---> File check Failed! Operation Aborted.')
-            print(sys.exc_info()[0])
+        except Exception as e:
+            
+            print('---> File check Failed! Operation Aborted.\n')
+            print(e + '\n')
 
     else:
         print('\n************ The input', '"'+ main_path +'"' ,'is not a valid path. Please try again ************\n')
@@ -130,11 +138,18 @@ def main_func(main_path):
 
 if __name__ == '__main__':
     
+    # Load config file 
+    try:
+        property_dict = open('config.json', 'r').read()
+        property_dict = json.loads(property_dict)
+    except Exception as err:
+        raise FileNotFoundError(f"Unable to read the config file.\n{err}")
+    
     # Get path from user
     main_path = input('Enter data path:')
     
     # Run main script for file check, conversion to .h5, fitlering and predictions 
-    main_func(main_path)
+    main_func(main_path, property_dict)
 
                 
                 
