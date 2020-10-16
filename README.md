@@ -13,8 +13,8 @@ Semi-automated seizure detection toolbox.
 
 **Dependencies**
 
-- `numpy <https://numpy.org/>`_
-- `scipy <https://www.scipy.org/>`_
-- `numba <http://numba.pydata.org/>`_
+- `numpy <https://numpy.org/>`
+- `scipy <https://www.scipy.org/>`
+- `numba <http://numba.pydata.org/>`
 
 ** Included Adi toolbox from Jim Hokanson https://github.com/JimHokanson/adinstruments_sdk_python
