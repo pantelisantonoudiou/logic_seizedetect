@@ -1,12 +1,12 @@
 # Logic_szrDetect
 Semi-automated seizure detection toolbox. 
 
-## How to Use
+## Example
 
-### A) Data preparation and batch predictions
+#### A) Data preparation and batch predictions
     python main_process.py
 
-### B) User Verification
+#### B) User Verification
     python get_path.py
     python main_gui.py
 
