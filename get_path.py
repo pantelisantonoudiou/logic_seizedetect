@@ -5,9 +5,12 @@ Created on Wed Sep 30 13:04:58 2020
 @author: panton01
 """
 
-
+### ------------------- Imports ------------------- ###
 import os, json
+### ----------------------------------------------- ###
 
+# get configuration file name
+conf_file = 'config.json'
 
 def main_func():
     """
@@ -26,12 +29,13 @@ def main_func():
         print('\n************ The input', '"'+ path +'"' ,'is not a valid path. Please try again ************\n')
         return False
     
-    # create dict for export
-    to_export = {'main_path':path}
-    
-    # Load config file 
+    # pass current experiment path to config file 
     try:
-        open('config.json', 'w').write(json.dumps(to_export))
+        # Load config file and update with current experiment path 
+        property_dict = open(conf_file, 'r').read() # get json to memory
+        property_dict = json.loads(property_dict) # parse json to dict
+        property_dict['main_path'] = path # update dict with path
+        open(conf_file, 'w').write(json.dumps(property_dict)) # save dict to json
     except Exception as err:
         print('Unable to write the config file.\n',err)
 
