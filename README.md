@@ -13,7 +13,7 @@ Semi-automated seizure detection toolbox.
 
 **Dependencies**
 
-- `numpy <https://numpy.org/>`
+- [numpy] (https://numpy.org/)
 - `scipy <https://www.scipy.org/>`
 - `numba <http://numba.pydata.org/>`
 
