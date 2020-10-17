@@ -12,11 +12,11 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # User Defined
-parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 from helper.array_helper import find_szr_idx, merge_close
 from helper.io_getfeatures import get_data, get_features_allch
 from data_preparation.multich_data_prep import Lab2Mat
 import features
+# parent_path = os.path.dirname(os.path.abspath(os.getcwd()))
 ### ------------------------------------------------------------------------###
               
 class modelPredict:
@@ -53,7 +53,7 @@ class modelPredict:
         self.win = obj_props['win']
 
         # Read method parameters into dataframe
-        df = pd.read_csv(os.path.join(parent_path,'helper','selected_method.csv'))
+        df = pd.read_csv(os.path.join('helper','selected_method.csv'))
         self.thresh = np.array(df.loc[0][df.columns.str.contains('Thresh')])
         self.weights = np.array(df.loc[0][df.columns.str.contains('Weight')])
         self.enabled = np.array(df.loc[0][df.columns.str.contains('Enabled')])

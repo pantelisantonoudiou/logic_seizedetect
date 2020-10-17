@@ -1,14 +1,1 @@
-{
-"main_path" : "", 
-"data_dir" : "raw_data",
-"org_rawpath" : "reorganized_data",
-"filt_dir" : "filt_data",
-"rawpred_path" : "raw_predictions",
-"ch_struct" : ["vhpc", "fc", "emg"],
-"file_ext" : ".adicht",
-"win" : 5,
-"new_fs": 100,
-"chunksize" : 2000,
-"ch_list" : [0,1],
-"properties_file" : "organized.json"
-}
+{"main_path": "", "data_dir": "raw_data", "org_rawpath": "reorganized_data", "filt_dir": "filt_data", "rawpred_path": "raw_predictions", "ch_struct": ["vhpc", "fc", "emg"], "file_ext": ".adicht", "win": 5, "new_fs": 100, "chunksize": 2000, "ch_list": [0, 1], "properties_file": "organized.json"}
