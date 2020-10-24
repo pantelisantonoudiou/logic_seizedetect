@@ -113,7 +113,7 @@ def main_func(main_path, property_dict):
         while answer != 'y' and answer != 'n': # repeat until get yes or no
         
             # Verify whether to proceed
-            answer = input('-> File Check Completed. Dou want to proceed (y/n)? \n') 
+            answer = input('-> File Check Completed. Do you want to proceed (y/n)? \n') 
         
             if answer == 'y':
                 for f_path in obj.folders: # iterate over folders      
