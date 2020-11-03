@@ -131,7 +131,7 @@ def main_func(main_path, property_dict):
                         model_obj = modelPredict(property_dict)
                         model_obj.mainfunc() # Get predictions
                         
-                print('\n************************* All Steps Completed *************************n')
+                print('\n************************* All Steps Completed *************************\n')
                 
             elif answer == 'n':
                 print('---> No Further Action Will Be Performed.\n')
