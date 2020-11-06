@@ -42,7 +42,7 @@ class modelPredict:
                
         # Need to get from obj props
         self.filt_dir = obj_props['filt_dir'] # get filt dir
-        self.ch_list = obj_props['ch_list'] # Get ch list from dict
+        self.ch_list = list(range(len(obj_props['ch_list'])))  # Get all channel from filter for prediction
         
         # Create raw pred path
         obj_props.update({'rawpred_path' : property_dict['rawpred_path']})
