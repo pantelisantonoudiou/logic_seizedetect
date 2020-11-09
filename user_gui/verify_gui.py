@@ -139,7 +139,7 @@ class matplotGui(object):
         ax.set_title('vHPC', loc ='left')
         ax1.set_title('Frontal', loc ='left')
         ax2.set_title('EMG', loc ='left')
-        ax1.set_ylabel('(V) Norm Amp.')
+        ax1.set_ylabel('Amp. (V)')
         ax2.set_xlabel('Time (Sec.)')
      
         # concatenate segments
