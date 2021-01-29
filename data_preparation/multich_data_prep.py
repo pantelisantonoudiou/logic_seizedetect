@@ -168,6 +168,7 @@ class Lab2Mat:
             mat_shape[0] = floor(length/win_samp) # get number of rows
             mat_shape[1] = round(win_samp / self.down_factor) # get number of columns
             idx = rem_array(0, mat_shape[0], self.chunksize) # get index
+            idx = np.unique(idx) # remove duplicates
             
             ### SAVING PARAMETERS ###
             file_id  = filename + ascii_lowercase[block] + '.h5' # add extension
