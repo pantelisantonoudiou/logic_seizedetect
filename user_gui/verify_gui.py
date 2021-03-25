@@ -149,9 +149,9 @@ class matplotGui(object):
             start = self.start; stop = self.stop
             
         y = self.data[start: stop,:].flatten()
-        t = np.linspace(start, stop, len(y))
+        t = np.linspace(start, stop, len(y)) * self.win
         # plot highlighted region
-        ax.plot(t,y, color='orange', linewidth=0.75, alpha=0.9)
+        ax.plot(t, y, color='orange', linewidth=0.75, alpha=0.9)
         fig.canvas.draw()
           
         
