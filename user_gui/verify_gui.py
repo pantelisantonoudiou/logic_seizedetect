@@ -125,7 +125,7 @@ class matplotGui(object):
         y = self.data[self.start-self.seg : self.stop+self.seg,:].flatten()
         y1 = self.data1[self.start-self.seg : self.stop+self.seg,:].flatten()
         y2 = self.data2[self.start-self.seg : self.stop+self.seg,:].flatten()
-        t = np.linspace(self.start-self.seg, self.stop+self.seg,len(y))
+        t = np.linspace(self.start-self.seg, self.stop+self.seg, len(y)) * self.win
 
         # Plot seizure with surrounding region
         ax.clear();ax1.clear(); ax2.clear()# clear graph
