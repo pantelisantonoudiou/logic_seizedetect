@@ -125,7 +125,7 @@ class matplotGui(object):
         y = self.data[self.start-self.seg : self.stop+self.seg,:].flatten()
         y1 = self.data1[self.start-self.seg : self.stop+self.seg,:].flatten()
         y2 = self.data2[self.start-self.seg : self.stop+self.seg,:].flatten()
-        t = np.linspace(self.start-self.seg, self.stop+self.seg, len(y)) * self.win
+        t = np.linspace(self.start-self.seg, self.stop+self.seg, len(y))
 
         # Plot seizure with surrounding region
         ax.clear();ax1.clear(); ax2.clear()# clear graph
@@ -140,7 +140,7 @@ class matplotGui(object):
         ax1.set_title('Frontal', loc ='left')
         ax2.set_title('EMG', loc ='left')
         ax1.set_ylabel('Amp. (V)')
-        ax2.set_xlabel('Time (Sec.)')
+        ax2.set_xlabel('Time Bins (' + str(self.win) + 's.)')
      
         # concatenate segments
         if 'usr_start' in kwargs: # plot user define
@@ -149,7 +149,7 @@ class matplotGui(object):
             start = self.start; stop = self.stop
             
         y = self.data[start: stop,:].flatten()
-        t = np.linspace(start, stop, len(y)) * self.win
+        t = np.linspace(start, stop, len(y))
         # plot highlighted region
         ax.plot(t, y, color='orange', linewidth=0.75, alpha=0.9)
         fig.canvas.draw()
