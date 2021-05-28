@@ -22,5 +22,4 @@ Semi-automated seizure detection toolbox.
 - [matplotlib](https://github.com/matplotlib/matplotlib)
 - [tqdm](https://github.com/tqdm/tqdm)
 - [pick](https://github.com/wong2/pick)
-
-** Included [Adi](https://github.com/JimHokanson/adinstruments_sdk_python) toolbox by Jim Hokanson 
+- [Adi](https://github.com/JimHokanson/adinstruments_sdk_python)
