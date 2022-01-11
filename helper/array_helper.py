@@ -203,7 +203,37 @@ def match_szrs(idx_true, idx_pred, err_margin = 5):
             
     return matching
 
-
+# find matching seizures method 2 with index 
+@jit(nopython=True) 
+def match_szrs_idx(idx_true, y_pred):
+    """
+    find index of matching seizures
+    
+    Parameters
+    ----------
+    idx_true : np.array, index of true seizures  
+    y_pred : np.array, binary predictions of model
+    
+    Returns
+    -------
+    idx, containing ones or zeros
+    
+    """
+    # create empty vector
+    idx = np.zeros(idx_true.shape[0])
+    
+    for i in range(idx_true.shape[0]):
+        
+        # get predictions in seizure range
+        pred = y_pred[idx_true[i,0]:idx_true[i,1]+1]
+        
+        # get sum of continous predictions > more than 10 seconds
+        sum_continous_segments = np.sum(remove_zeros(pred.copy(), pred, np.array([0,1])))    
+        
+        # pass to index array
+        idx[i] = sum_continous_segments
+ 
+    return idx > 0 # convert to logic
 
 
 
