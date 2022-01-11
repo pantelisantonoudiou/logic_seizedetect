@@ -233,7 +233,6 @@ class MethodTest:
        
         for i in range(len(self.weights)):    
             for ii in range(len(self.feature_set)):              
-                breakpoint()
                 # find predicted seizures
                 y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
                 y_pred = np.sum(y_pred,axis=1) / np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
