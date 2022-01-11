@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 ##### ---------------------------------------------------- IMPORTS ----------------------------------------------------- #####
-import os, sys, features
+import os
+# import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
-from build_feature_data import get_data, get_features_allch
-from array_helper import find_szr_idx, match_szrs, merge_close
+from helper import features
+from helper.io_getfeatures import get_data, get_features_allch
+from helper.array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
@@ -19,10 +21,9 @@ param_list = (features.autocorr, features.line_length, features.rms, features.ma
               features.get_envelope_max_diff,) # single channel features
 cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
 ##### -------------------------------------------------------------------------------------------------------------------- #####
-        
 
 class MethodTest:
-    """ MethodTest
+    """
     Tests different feature combinations for seizure prediction
     obtained from testing dataset
     """
@@ -30,11 +31,10 @@ class MethodTest:
     # class constructor (data retrieval)
     def __init__(self, main_path):
         """
-        ThreshMetrics(main_path)
-
+        
         Parameters
         ----------
-        input_path : Str, path to parent directory.
+        main_path : Str, path to parent directory.
         """
         
         # pass parameters to object
@@ -65,7 +65,6 @@ class MethodTest:
         
     def multi_folder(self):
         """
-        multi_folder(self)
         Loop though folder paths get seizure metrics and save to csv
     
         Parameters
@@ -95,14 +94,13 @@ class MethodTest:
         
         # save dataframe to csv
         file_name = os.path.join(self.save_folder, 'best_method_metrics.csv')
-        self.df.to_csv(file_name, header=True, index = False)
+        self.df.to_csv(file_name, header=True, index=False)
         print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
         
 
     def folder_loop(self, folder_name):
         """
-        folder_loop(self, folder_name)
 
         Parameters
         ----------
@@ -112,7 +110,7 @@ class MethodTest:
         -------
         bool
         """
-        
+
         # get file list 
         ver_path = os.path.join(self.main_path, folder_name,'verified_predictions_pantelis')
         if os.path.exists(ver_path)== False: # error check
@@ -163,12 +161,12 @@ class MethodTest:
 # obj.multi_folder() # get catalogue for multiple folders   
     
     
-if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        obj = MethodTest(sys.argv[1]) # instantiate and pass main path
-        obj.multi_folder() # get catalogue for multiple folders
-    else:
-        print('Please provide parent directory')
+# if __name__ == '__main__':
+#     if len(sys.argv) == 2:
+#         obj = MethodTest(sys.argv[1]) # instantiate and pass main path
+#         obj.multi_folder() # get catalogue for multiple folders
+#     else:
+#         print('Please provide parent directory')
 
 
 

@@ -1,28 +1,26 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Aug 26 15:11:04 2020
-
-@author: Pante
-"""
 
 ##### ---------------------------------------------------- IMPORTS ----------------------------------------------------- #####
-import os, sys, features
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
-from build_feature_data import get_data, get_features_allch
-from array_helper import find_szr_idx, match_szrs, merge_close
+from helper import features
+from helper.io_getfeatures import get_data, get_features_allch
+from helper.array_helper import find_szr_idx, match_szrs, merge_close
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
-ch_list = [0,1] # channel list
+ch_list = [0, 1] # channel list
 
-# Define total parameter list
+## Define total parameter list
+# single channel features
 param_list = (features.autocorr, features.line_length, features.rms, features.mad, features.var, features.std, features.psd, features.energy,
-              features.get_envelope_max_diff,) # single channel features
-cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) # cross channel features
+              features.get_envelope_max_diff,)
+# cross channel features
+cross_ch_param_list = (features.cross_corr, features.signal_covar, features.signal_abs_covar,) 
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 def get_feature_parameters(main_path):
@@ -65,14 +63,16 @@ def get_feature_parameters(main_path):
     n_repeat = 100 # number of times to drop features per dataset
     feature_set = feature_set_or.copy()
     
-    for i in range(len(feature_set_or)): # iterate through original data-set
-        for ii in range(n_repeat): # iterate n times to drop random features
-            drop_percentage = np.random.randint(2,4) # get random percentage to drop
-            temp_feature = feature_set_or[i].copy() # get a copy
-            true_idx = np.where(temp_feature)[0] # get true index
-            idx = np.random.choice(true_idx, np.int(len(true_idx)/drop_percentage), replace=True) # get idx to convert to False
-            temp_feature[idx] = False # convert to false
-            feature_set.append(temp_feature) # append to list
+    for i in range(len(feature_set_or)):                                         # iterate through original data-set
+        for ii in range(n_repeat):                                               # iterate n times to drop random features
+            drop_percentage = np.random.randint(2,4)                             # get random percentage to drop
+            temp_feature = feature_set_or[i].copy()
+            true_idx = np.where(temp_feature)[0]
+            idx = np.random.choice(true_idx, 
+                                   np.int(len(true_idx)/drop_percentage), 
+                                   replace=True)
+            temp_feature[idx] = False
+            feature_set.append(temp_feature)
   
     feature_set = [np.array(x) for x in set(tuple(x) for x in feature_set)] # get unique feature sets
 
@@ -80,18 +80,17 @@ def get_feature_parameters(main_path):
         
 
 class MethodTest:
-    """ MethodTest
-    Tests different feature combinations for seizure prediction
+    """ 
+        Tests different feature combinations for seizure prediction
     """
     
     # class constructor (data retrieval)
     def __init__(self, main_path):
         """
-        ThreshMetrics(main_path)
 
         Parameters
         ----------
-        input_path : Str, path to parent directory.
+        main_path : Str, path to parent directory.
         """
         
         # pass parameters to object
@@ -119,7 +118,7 @@ class MethodTest:
         
     def multi_folder(self):
         """
-        multi_folder(self)
+
         Loop though folder paths get seizure metrics and save to csv
     
         Parameters
@@ -158,7 +157,7 @@ class MethodTest:
         
     def create_save_df(self):
         """
-        create_save_df, 
+
         Create self dataframe  based on thresholds, weighs and feature set.
         """
         
@@ -185,7 +184,6 @@ class MethodTest:
 
     def folder_loop(self, folder_name):
         """
-        folder_loop(self, folder_name)
 
         Parameters
         ----------
@@ -203,14 +201,14 @@ class MethodTest:
                 return False
         filelist = list(filter(lambda k: '.csv' in k, os.listdir(ver_path))) # get only files with predictions
         filelist = [os.path.splitext(x)[0] for x in filelist] # remove csv ending
-     
+        
         for i in tqdm(range(0, len(filelist))): # iterate through experiments
     
             # get data and true labels
             data, y_true = get_data(os.path.join(self.main_path, folder_name),filelist[i], ch_num = ch_list, 
                                     inner_path={'data_path':'filt_data', 'pred_path':'verified_predictions_pantelis'} , load_y = True)
             
-            x_data, labels = get_features_allch(data,param_list,cross_ch_param_list) # Get features and labels
+            x_data, labels = get_features_allch(data, param_list, cross_ch_param_list) # Get features and labels
             x_data = StandardScaler().fit_transform(x_data) # Normalize data
             bounds_true = find_szr_idx(y_true, np.array([0,1])) # get bounds of true seizures
             
@@ -235,7 +233,7 @@ class MethodTest:
        
         for i in range(len(self.weights)):    
             for ii in range(len(self.feature_set)):              
-               
+                breakpoint()
                 # find predicted seizures
                 y_pred = y_pred_array * self.weights[i] * self.feature_set[ii]  # get predictions based on weights and selected features
                 y_pred = np.sum(y_pred,axis=1) / np.sum(self.weights[i] * self.feature_set[ii]) # normalize to weights and selected features
@@ -255,13 +253,13 @@ class MethodTest:
                 self.df_cntr += 1 # update counter
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
-    if len(sys.argv) == 2:
-        obj = MethodTest(sys.argv[1]) # instantiate and pass main path
-        obj.multi_folder() # get catalogue for multiple folders
-    else:
-        print('Please provide parent directory')
+#     if len(sys.argv) == 2:
+#         obj = MethodTest(sys.argv[1]) # instantiate and pass main path
+#         obj.multi_folder() # get catalogue for multiple folders
+#     else:
+#         print('Please provide parent directory')
 
 # TESTING CODE #
 # main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
