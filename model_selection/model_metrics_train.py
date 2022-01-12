@@ -82,6 +82,11 @@ def get_feature_parameters(main_path):
 class MethodTest:
     """ 
         Tests different feature combinations for seizure prediction
+        
+        --- Examples ---
+        main_path = 'test\data\train'
+        obj = MethodTest(main_path)
+        obj.multi_folder()
     """
     
     # class constructor (data retrieval)
@@ -250,24 +255,3 @@ class MethodTest:
                 self.df['detected'][self.df_cntr] += detected # n of detected seizures
                 self.df['false_positives'][self.df_cntr] += bounds_pred.shape[0] - detected # n of false positives
                 self.df_cntr += 1 # update counter
-
-
-# if __name__ == '__main__':
-    
-#     if len(sys.argv) == 2:
-#         obj = MethodTest(sys.argv[1]) # instantiate and pass main path
-#         obj.multi_folder() # get catalogue for multiple folders
-#     else:
-#         print('Please provide parent directory')
-
-# TESTING CODE #
-# main_path =  r'C:\Users\Pante\Desktop\seizure_data_tb\Train_data'  # 3514_3553_3639_3640  3642_3641_3560_3514
-# obj = MethodTest(main_path) # instantiate and pass main path
-# obj.multi_folder() # get catalogue for multiple folders
-
-
-
-
-
-
-
