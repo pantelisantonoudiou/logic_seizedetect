@@ -154,9 +154,9 @@ class MethodTest:
                     detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
                     
                 # get total numbers
-                self.df['total'][ii] += bounds_true.shape[0] # total true
-                self.df['detected'][ii] += detected # n of detected seizures
-                self.df['false_positives'][ii] += bounds_pred.shape[0] - detected # n of false positives
+                self.df.at[ii, 'total'] = self.df['total'][ii] + bounds_true.shape[0]                                       # total true
+                self.df.at[ii, 'detected'] = self.df['detected'][ii] + detected                                             # n of detected seizures
+                self.df.at[ii, 'false_positives'] = self.df['false_positives'][ii] + (bounds_pred.shape[0] - detected)      # n of false positives
                 
         return True
 
