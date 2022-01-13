@@ -120,16 +120,16 @@ def main_func(main_path, property_dict):
                     if os.path.isdir(f_path) == 1: # if path exists
                         
                         # -1 Convert Labchart to .h5 objects
-                        property_dict['main_path'] = f_path # update dict with main path
-                        file_obj = Lab2Mat(property_dict) # instantiate object    
-                        file_obj.mainfunc() # Convert data   
+                        # property_dict['main_path'] = f_path # update dict with main path
+                        # file_obj = Lab2Mat(property_dict) # instantiate object    
+                        # file_obj.mainfunc() # Convert data   
     
                         # -2 Filter and preprocess data
                         batch_clean_filt(property_dict,  num_channels = property_dict['ch_list'])
                         
                         # -3 Get Method/Model Predictions
-                        model_obj = modelPredict(property_dict)
-                        model_obj.mainfunc() # Get predictions
+                        # model_obj = modelPredict(property_dict)
+                        # model_obj.mainfunc() # Get predictions
                         
                 print('\n************************* All Steps Completed *************************\n')
                 
