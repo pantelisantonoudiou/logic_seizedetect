@@ -9,7 +9,7 @@ from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from helper import features
 from helper.io_getfeatures import get_data, get_features_allch
-from helper.array_helper import find_szr_idx, match_szrs, merge_close
+from helper.array_helper import find_szr_idx, match_szrs, merge_close, match_szrs_idx
 ##### -------------------------------------------------------------------------------------------------------------------- #####
 
 ##### ---------------------------------------------------- SETTINGS ----------------------------------------------------- #####
@@ -155,7 +155,7 @@ class MethodTest:
         self.df['detected_ratio'] = self.df['detected']/self.df['total']
         
         # save dataframe to csv
-        file_name = os.path.join(self.save_folder, 'all_method_metrics.csv')
+        file_name = os.path.join(self.save_folder, 'all_method_metrics_idx_method.csv')
         self.df.to_csv(file_name, header=True, index = False)
         print('Method metrics saved to:', file_name)
         print('----------------------- END --------------------------')
@@ -247,8 +247,9 @@ class MethodTest:
                 detected = 0 # set default detected to 0
                 if bounds_pred.shape[0] > 0:
                     # get bounds of predicted sezures
-                    bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
-                    detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
+                    # bounds_pred = merge_close(bounds_pred, merge_margin = 5) # merge seizures close together                  
+                    # detected = match_szrs(bounds_true, bounds_pred, err_margin = 10) # find matching seizures
+                    detected = np.sum(match_szrs_idx(bounds_true, y_pred))
                     
                 # get total numbers
                 self.df['total'][self.df_cntr] += bounds_true.shape[0] # total true
