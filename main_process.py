@@ -88,20 +88,20 @@ def main_func(main_path, property_dict):
     """
     
     # File Check
-    file_check_success = False
+    file_check_success = True
     
     if os.path.isdir(main_path): 
         
         # instantiate object
         obj = DataPrep(main_path, property_dict) 
-        try:
-            # perform file check
-            file_check_success = obj.file_check() 
+        # try:
+        #     # perform file check
+        #     file_check_success = obj.file_check() 
             
-        except Exception as e:
+        # except Exception as e:
             
-            print('---> File check Failed! Operation Aborted.\n')
-            print(e + '\n')
+        #     print('---> File check Failed! Operation Aborted.\n')
+        #     print(e + '\n')
 
     else:
         print('\n************ The input', '"'+ main_path +'"' ,'is not a valid path. Please try again ************\n')
