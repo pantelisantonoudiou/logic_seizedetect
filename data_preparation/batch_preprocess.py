@@ -32,7 +32,7 @@ def batch_clean_filt(property_dict, num_channels = [0,1]):
     """
     
     # Get main path and load properties file
-    jsonpath = os.path.join(property_dict['main_path'], 'organized.json') # name of dictionary where propeties are stored
+    jsonpath = os.path.join(property_dict['main_path'], 'config.json') # name of dictionary where propeties are stored
     obj_props = Lab2Mat.load(jsonpath) # load dict
     
     # Get paths from dict
